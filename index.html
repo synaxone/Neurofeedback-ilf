@@ -3086,7 +3086,7 @@ var emotionnelQuestions = [
   { num: 92, text: "Êtes-vous parfois embarrassé(e) ? (facilement gêné(e) en public, incertain(e) de votre discours, de vos choix…)", special: "domaines_cursor", contexts: ["Dans la vie quotidienne (rue, transports, espaces publics…)", "En situation professionnelle ou scolaire", "Dans les relations sociales et amicales"], contextLabels: ["0 · pas du tout", "5", "10 · vraiment beaucoup"] },
   { num: 93, text: "Êtes-vous méfiant(e) vis-à-vis des autres ?", rangeLabels: ["0 · pas du tout", "5", "10 · vraiment beaucoup"] },
   { num: 94, text: "Avez-vous parfois ou avez-vous eu des attaques de panique ?", rangeLabels: ["0 · jamais", "5", "10 · très souvent"], note: "Une attaque de panique est une montée brutale et intense d'anxiété avec des symptômes physiques : palpitations, essoufflement, sueurs, vertiges, sensation de mort imminente ou de devenir fou(folle). Elle dure généralement quelques minutes à une demi-heure et peut survenir sans raison apparente." },
-  { num: 95, text: "Êtes-vous souvent triste actuellement ?", rangeLabels: ["0 · pas du tout", "5", "10 · très souvent"] },
+  { num: 95, text: "Êtes-vous souvent triste actuellement ?", rangeLabels: ["0 · pas du tout", "5", "10 · très souvent"], pContexts: ["Effet antidépresseur et énergisant recherché"] },
   { num: 96, text: "Manquez-vous de joie et de plaisirs ?", rangeLabels: ["0 · pas du tout", "5", "10 · beaucoup"] },
   { num: 97, text: "Avez-vous peu ou trop d'empathie envers les autres ?", special: "q97_empathie" },
   { num: 98, text: "Avez-vous des sautes d'humeur ?", rangeLabels: ["0 · jamais", "5", "10 · très souvent"], note: "Les sautes d'humeur sont des changements rapides de l'état émotionnel, parfois sans vraie raison : passer de la joie à la tristesse, du calme à l'irritation, en peu de temps." },
@@ -3416,9 +3416,10 @@ function collectAllAnswers() {
     }
   });
 
-  // Collect practitioner context checkboxes
-  lines.push('');
-  lines.push('── PRÉCISIONS PRATICIEN ──');
+  // Collect practitioner context checkboxes (sent to Apps Script only, not email)
+  var pratLines = [];
+  pratLines.push('');
+  pratLines.push('── PRÉCISIONS PRATICIEN ──');
   document.querySelectorAll('input[id^=pctx_]').forEach(cb => {
     if (cb.checked) {
       var parts = cb.id.split('_');
@@ -3426,12 +3427,22 @@ function collectAllAnswers() {
       var card = document.getElementById('qcard_' + qid);
       var label = cb.parentElement.textContent.trim();
       var qnum = card ? (card.querySelector('.q-num') ? card.querySelector('.q-num').textContent : qid) : qid;
-      // Format: "Q3 [praticien] : Si trauma" ou "Q20 [praticien] : Attention aux détails"
-      lines.push(qnum + ' [praticien] : ' + label);
+      pratLines.push(qnum + ' [praticien] : ' + label);
     }
   });
 
-  return lines.join('\n');
+  // Collect practitioner annotations
+  document.querySelectorAll('.practitioner-annotation textarea').forEach(ta => {
+    if (ta.value && ta.value.trim()) {
+      var card = ta.closest('.question-card');
+      if (card) {
+        var qnum = card.querySelector('.q-num');
+        if (qnum) pratLines.push(qnum.textContent + ' [annotation] : ' + ta.value.trim());
+      }
+    }
+  });
+
+  return { patient: lines.join('\n'), praticien: pratLines.join('\n') };
 }
 
 // !! REMPLACE CETTE URL par celle de ton Google Apps Script déployé !!
@@ -3634,7 +3645,8 @@ function envoyerQuestionnaire() {
 
 function sendByEmail(nom, email) {
   var subject = encodeURIComponent('Questionnaire Neurofeedback – ' + nom.trim());
-  var body = encodeURIComponent(collectAllAnswers());
+  var collected = collectAllAnswers();
+  var body = encodeURIComponent(collected.patient); // patient only, no praticien
   window.location.href = 'mailto:' + email + '?subject=' + subject + '&body=' + body;
   setTimeout(showConfirmation, 1000);
 }
@@ -3647,6 +3659,16 @@ function showConfirmation() {
   if (conf) conf.removeAttribute('hidden');
   var btn = document.querySelector('[onclick="envoyerQuestionnaire()"]');
   if (btn) { btn.textContent = '\u2705 Envoyé !'; }
+
+  // Send full data (patient + praticien) to Google Apps Script
+  try {
+    var collected = collectAllAnswers();
+    var fullData = collected.patient + '\n' + collected.praticien;
+    var formData = new FormData();
+    formData.append('body', fullData);
+    fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: formData });
+  } catch(e) { console.log('Apps Script send error:', e); }
+
   setTimeout(() => goToSection(11), 2000);
 }
 
