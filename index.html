@@ -3720,6 +3720,13 @@ function envoyerQuestionnaire() {
   msg += 'Pour recharger ce questionnaire en mode praticien :\n';
   msg += reloadLink + '\n';
 
+  // Send to Apps Script with full msg (includes all patient info)
+  try {
+    var formData = new FormData();
+    formData.append('body', msg);
+    fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: formData });
+  } catch(e) { console.log('Apps Script send error:', e); }
+
   // Send via EmailJS
   var emailDest = 'synaxone.nfb@gmail.com';
   console.log('Sending to:', emailDest);
@@ -3755,17 +3762,25 @@ function showConfirmation() {
   if (conf) conf.removeAttribute('hidden');
   var btn = document.querySelector('[onclick="envoyerQuestionnaire()"]');
   if (btn) { btn.textContent = '\u2705 Envoyé !'; }
-
-  // Send full data (patient + praticien) to Google Apps Script
-  try {
-    var collected = collectAllAnswers();
-    var fullData = collected.patient + '\n' + collected.praticien;
-    var formData = new FormData();
-    formData.append('body', fullData);
-    fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: formData });
-  } catch(e) { console.log('Apps Script send error:', e); }
-
   setTimeout(() => goToSection(11), 2000);
+}
+
+function imprimerQuestionnaire() {
+  // Mark all answered questions first
+  updateAnswerHighlights();
+  // Show all sections temporarily for printing
+  var sections = document.querySelectorAll('.section');
+  var hidden = [];
+  sections.forEach(function(s) {
+    if (s.style.display === 'none') {
+      hidden.push(s);
+      s.style.display = 'block';
+    }
+  });
+  window.print();
+  setTimeout(function() {
+    hidden.forEach(function(s) { s.style.display = 'none'; });
+  }, 1000);
 }
 
 function imprimerVierge() {
@@ -3778,29 +3793,11 @@ function imprimerVierge() {
       s.style.display = 'block';
     }
   });
-  // Add print-vierge class to body
   document.body.classList.add('print-vierge');
   window.print();
   setTimeout(function() {
     hidden.forEach(function(s) { s.style.display = 'none'; });
     document.body.classList.remove('print-vierge');
-  }, 1000);
-}
-
-function imprimerQuestionnaire() {
-  // Show all sections temporarily for printing
-  var sections = document.querySelectorAll('.section');
-  var hidden = [];
-  sections.forEach(function(s) {
-    if (s.style.display === 'none') {
-      hidden.push(s);
-      s.style.display = 'block';
-    }
-  });
-  window.print();
-  // Restore after print
-  setTimeout(function() {
-    hidden.forEach(function(s) { s.style.display = 'none'; });
   }, 1000);
 }
 
