@@ -400,28 +400,34 @@
   @media print {
     .section-tabs, .nav-bar, .mode-toggle, #modeBanner,
     .practitioner-annotation, .practitioner-only,
-    button, .tabs-arrow { display: none !important; }
-    .section { display: block !important; break-inside: avoid; }
-    .question-card { break-inside: avoid; margin-bottom: 8px; }
+    button, .tabs-arrow, .freq-tooltip { display: none !important; }
+    .section { display: block !important; }
+    .question-card { break-inside: avoid; margin-bottom: 4px !important; box-shadow: none !important; border-radius: 4px !important; }
     .question-card:not(.has-answer) { display: none !important; }
-    body { background: white !important; }
-    .question-main { padding: 8px 12px !important; }
-    .section-title { font-size: 14px !important; padding: 6px 12px !important; }
+    body { background: white !important; font-size: 11px !important; }
+    .question-main { padding: 4px 8px !important; }
+    .section-title { font-size: 11px !important; padding: 4px 8px !important; margin-bottom: 4px !important; }
+    .q-text { font-size: 11px !important; }
+    .q-num { font-size: 9px !important; padding: 2px 5px !important; }
+    .response-group label { font-size: 9px !important; }
+    .field-input, textarea { font-size: 10px !important; min-height: 20px !important; padding: 2px 4px !important; }
+    .intensity-val { font-size: 14px !important; }
+    .range-labels { font-size: 8px !important; }
+    .header { padding: 10px 12px !important; }
+    .header h1 { font-size: 14px !important; }
 
     /* Questionnaire vierge - toutes les questions visibles */
     body.print-vierge .question-card { display: block !important; }
-    body.print-vierge .response-grid,
-    body.print-vierge .intensity-display,
-    body.print-vierge input[type=range],
-    body.print-vierge .range-labels,
-    body.print-vierge .yesno-group,
-    body.print-vierge .field-input { display: none !important; }
-    body.print-vierge .question-main::after {
-      content: '';
-      display: block;
-      border-bottom: 1px solid #ccc;
-      margin: 8px 0 4px;
-      height: 20px;
+    body.print-vierge .response-grid { display: none !important; }
+    body.print-vierge .intensity-display { display: none !important; }
+    body.print-vierge input[type=range] { display: none !important; }
+    body.print-vierge .range-labels { display: none !important; }
+    body.print-vierge .yesno-group { display: none !important; }
+    body.print-vierge textarea.field-input { display: none !important; }
+    body.print-vierge input.field-input { display: none !important; }
+    body.print-vierge .question-main {
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 12px !important;
     }
   }
 
