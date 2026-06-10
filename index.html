@@ -394,6 +394,9 @@
   }
 
   /* PRACTITIONER ANNOTATION */
+  .practitioner-only { display: none !important; }
+  .practitioner-mode .practitioner-only { display: block !important; }
+
   @media print {
     .section-tabs, .nav-bar, .mode-toggle, #modeBanner,
     .practitioner-annotation, .practitioner-only,
@@ -405,7 +408,7 @@
     .question-main { padding: 8px 12px !important; }
     .section-title { font-size: 14px !important; padding: 6px 12px !important; }
 
-    /* Questionnaire vierge */
+    /* Questionnaire vierge - toutes les questions visibles */
     body.print-vierge .question-card { display: block !important; }
     body.print-vierge .response-grid,
     body.print-vierge .intensity-display,
@@ -421,7 +424,6 @@
       height: 20px;
     }
   }
-  .practitioner-mode .practitioner-only { display: block; }
 
   .practitioner-annotation {
     display: none;
