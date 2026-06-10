@@ -580,6 +580,16 @@
     border-right-color: var(--practitioner);
   }
 
+  .practitioner-mode .question-card.has-answer {
+    border-left: 3px solid var(--practitioner);
+    background: var(--practitioner-light);
+  }
+
+  .practitioner-mode .question-card.has-answer .q-num {
+    background: var(--practitioner);
+    color: white;
+  }
+
   /* RESPONSIVE */
   @media (max-width: 600px) {
     .header { padding: 28px 16px 24px; }
@@ -1186,6 +1196,26 @@ function selectYesNo(btn, val, id) {
 // ===== MODE TOGGLE =====
 var isPraticien = false;
 
+function updateAnswerHighlights() {
+  document.querySelectorAll('.question-card').forEach(card => {
+    var hasAnswer = false;
+    // Check range inputs > 0
+    card.querySelectorAll('input[type=range]').forEach(inp => {
+      if (parseInt(inp.value) > 0) hasAnswer = true;
+    });
+    // Check yesno
+    card.querySelectorAll('input[type=hidden][id^=yn_]').forEach(inp => {
+      if (inp.value) hasAnswer = true;
+    });
+    // Check checkboxes
+    card.querySelectorAll('input[type=checkbox]:not([id^=pctx_])').forEach(cb => {
+      if (cb.checked) hasAnswer = true;
+    });
+    if (hasAnswer) card.classList.add('has-answer');
+    else card.classList.remove('has-answer');
+  });
+}
+
 function toggleMode() {
   var body = document.body;
   var pBtn = document.getElementById('modePatient');
@@ -1207,6 +1237,7 @@ function toggleMode() {
     document.querySelectorAll('.practitioner-annotation').forEach(el => {
       el.classList.add('visible');
     });
+    updateAnswerHighlights();
   } else {
     isPraticien = false;
     body.classList.remove('practitioner-mode');
