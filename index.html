@@ -1247,6 +1247,11 @@ function goToSection(n) {
 }
 
 function nextSection() {
+  // Section 10 = envoi page (index 10), section 11 = merci page (index 11)
+  if (currentSection === 10 && !_envoiValide) {
+    alert('Veuillez envoyer le questionnaire avant de continuer.');
+    return;
+  }
   if (currentSection < totalSections - 1) goToSection(currentSection + 1);
 }
 
