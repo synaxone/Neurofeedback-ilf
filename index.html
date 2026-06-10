@@ -1187,13 +1187,19 @@ function selectYesNo(btn, val, id) {
 var isPraticien = false;
 
 function toggleMode() {
-  isPraticien = !isPraticien;
   var body = document.body;
   var pBtn = document.getElementById('modePatient');
   var rBtn = document.getElementById('modePraticien');
   var banner = document.getElementById('modeBanner');
 
-  if (isPraticien) {
+  if (!isPraticien) {
+    // Ask for password to enter praticien mode
+    var pwd = prompt('Mot de passe praticien :');
+    if (pwd !== 'nfbéàé-') {
+      alert('Mot de passe incorrect.');
+      return;
+    }
+    isPraticien = true;
     body.classList.add('practitioner-mode');
     pBtn.className = '';
     rBtn.className = 'active-practitioner';
@@ -1202,6 +1208,7 @@ function toggleMode() {
       el.classList.add('visible');
     });
   } else {
+    isPraticien = false;
     body.classList.remove('practitioner-mode');
     pBtn.className = 'active-patient';
     rBtn.className = '';
