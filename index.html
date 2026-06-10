@@ -753,7 +753,7 @@
   
   <button class="tab" onclick="goToSection(9)">⑩ Informations complémentaires</button>
   <button class="tab" onclick="goToSection(10)">✉ Envoyer</button>
-  <button class="tab" onclick="goToSection(11)">🙏 Merci</button>
+  <button class="tab" onclick="if(_envoiValide)goToSection(11)">🙏 Merci</button>
 </div>
   <button class="tabs-arrow right" onclick="document.querySelector('.section-tabs').scrollBy({left:200,behavior:'smooth'})">›</button>
 </div>
@@ -3372,7 +3372,14 @@ function collectAllAnswers() {
         var qtext = card.querySelector('.q-text');
         var qnum = card.querySelector('.q-num');
         if (qtext && qnum) {
-          lines.push(qnum.textContent + ' – ' + qtext.textContent.trim() + ' : ' + inp.value + '/10');
+          // For double cursors, add label (Fréquence/Intensité)
+          var rangeLabel = '';
+          var labelEl = inp.closest('.response-group');
+          if (labelEl) {
+            var lbl = labelEl.querySelector('label');
+            if (lbl) rangeLabel = ' [' + lbl.textContent.replace(/\(0–10\)/,'').trim() + ']';
+          }
+          lines.push(qnum.textContent + ' – ' + qtext.textContent.trim() + rangeLabel + ' : ' + inp.value + '/10');
         }
       }
     }
@@ -3627,12 +3634,14 @@ function sendByEmail(nom, email) {
   setTimeout(showConfirmation, 1000);
 }
 
+var _envoiValide = false;
+
 function showConfirmation() {
+  _envoiValide = true;
   var conf = document.getElementById('envoi_confirmation');
   if (conf) conf.removeAttribute('hidden');
   var btn = document.querySelector('[onclick="envoyerQuestionnaire()"]');
-  if (btn) { btn.textContent = '✅ Envoyé !'; }
-  // Redirect to thank you page after 2 seconds
+  if (btn) { btn.textContent = '\u2705 Envoyé !'; }
   setTimeout(() => goToSection(11), 2000);
 }
 
