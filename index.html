@@ -394,7 +394,33 @@
   }
 
   /* PRACTITIONER ANNOTATION */
-  .practitioner-only { display: none; }
+  @media print {
+    .section-tabs, .nav-bar, .mode-toggle, #modeBanner,
+    .practitioner-annotation, .practitioner-only,
+    button, .tabs-arrow { display: none !important; }
+    .section { display: block !important; break-inside: avoid; }
+    .question-card { break-inside: avoid; margin-bottom: 8px; }
+    .question-card:not(.has-answer) { display: none !important; }
+    body { background: white !important; }
+    .question-main { padding: 8px 12px !important; }
+    .section-title { font-size: 14px !important; padding: 6px 12px !important; }
+
+    /* Questionnaire vierge */
+    body.print-vierge .question-card { display: block !important; }
+    body.print-vierge .response-grid,
+    body.print-vierge .intensity-display,
+    body.print-vierge input[type=range],
+    body.print-vierge .range-labels,
+    body.print-vierge .yesno-group,
+    body.print-vierge .field-input { display: none !important; }
+    body.print-vierge .question-main::after {
+      content: '';
+      display: block;
+      border-bottom: 1px solid #ccc;
+      margin: 8px 0 4px;
+      height: 20px;
+    }
+  }
   .practitioner-mode .practitioner-only { display: block; }
 
   .practitioner-annotation {
@@ -790,6 +816,10 @@
         <label>Prénom</label>
         <input type="text" placeholder="Prénom" id="p_prenom">
       </div>
+      <div class="info-field practitioner-only" style="grid-column:1/-1;background:var(--practitioner-light);border-radius:8px;padding:10px 12px;border-left:3px solid var(--practitioner)">
+        <label style="color:var(--practitioner);font-weight:600">Code / Identifiant <span style="font-weight:400;font-size:11px">(optionnel — remplace le nom dans le plan)</span></label>
+        <input type="text" placeholder="ex : initiales, numéro dossier…" id="p_code" style="margin-top:4px">
+      </div>
       <div class="info-field">
         <label>Date de naissance</label>
         <input class="field-input" type="text" id="p_ddn" 
@@ -1053,6 +1083,16 @@
   <div id="envoi_confirmation" hidden style="margin-top:16px;padding:16px 20px;background:#e8f5e9;border-radius:10px;border:1px solid #2d6a4f;color:#2d6a4f;font-size:13px;text-align:center">
     ✅ <strong>Questionnaire envoyé !</strong> Votre praticien recevra vos réponses par email.
   </div>
+
+  <button onclick="imprimerQuestionnaire()"
+    style="width:100%;margin-top:12px;padding:14px;background:white;color:var(--accent);border:2px solid var(--accent);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:0.02em">
+    🖨️ Imprimer le questionnaire rempli
+  </button>
+
+  <button onclick="imprimerVierge()"
+    style="width:100%;margin-top:8px;padding:14px;background:white;color:var(--text-muted);border:2px solid var(--border);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:0.02em">
+    🖨️ Imprimer questionnaire vierge
+  </button>
 </div>
 
 <!-- SECTION MERCI -->
@@ -3640,6 +3680,8 @@ function envoyerQuestionnaire() {
   var msg = '';
   msg += 'Nom : ' + (pnom2 ? pnom2.value : '') + '\n';
   msg += 'Prénom : ' + (pprenom2 ? pprenom2.value : '') + '\n';
+  var pcode2 = document.getElementById('p_code');
+  if (pcode2 && pcode2.value) msg += 'Code : ' + pcode2.value + '\n';
   msg += 'Age : ' + (page2 ? page2.value : '') + '\n';
   msg += 'Date naissance : ' + (pddn2 ? pddn2.value : '') + '\n';
   msg += 'Email : ' + (pemail2 ? pemail2.value : '') + '\n';
@@ -3661,6 +3703,14 @@ function envoyerQuestionnaire() {
       }
     }
   });
+
+  // Generate reload link for praticien
+  var collected = collectAllAnswers();
+  var reloadData = btoa(unescape(encodeURIComponent(collected.patient)));
+  var reloadLink = 'https://synaxone.github.io/Neurofeedback-ilf/?reload=' + reloadData;
+  msg += '\n\n── LIEN PRATICIEN ──\n';
+  msg += 'Pour recharger ce questionnaire en mode praticien :\n';
+  msg += reloadLink + '\n';
 
   // Send via EmailJS
   var emailDest = 'synaxone.nfb@gmail.com';
@@ -3710,7 +3760,83 @@ function showConfirmation() {
   setTimeout(() => goToSection(11), 2000);
 }
 
+function imprimerVierge() {
+  // Show all sections temporarily
+  var sections = document.querySelectorAll('.section');
+  var hidden = [];
+  sections.forEach(function(s) {
+    if (s.style.display === 'none') {
+      hidden.push(s);
+      s.style.display = 'block';
+    }
+  });
+  // Add print-vierge class to body
+  document.body.classList.add('print-vierge');
+  window.print();
+  setTimeout(function() {
+    hidden.forEach(function(s) { s.style.display = 'none'; });
+    document.body.classList.remove('print-vierge');
+  }, 1000);
+}
+
+function imprimerQuestionnaire() {
+  // Show all sections temporarily for printing
+  var sections = document.querySelectorAll('.section');
+  var hidden = [];
+  sections.forEach(function(s) {
+    if (s.style.display === 'none') {
+      hidden.push(s);
+      s.style.display = 'block';
+    }
+  });
+  window.print();
+  // Restore after print
+  setTimeout(function() {
+    hidden.forEach(function(s) { s.style.display = 'none'; });
+  }, 1000);
+}
+
 // Update recap when navigating to section 9
+
+// ── RECHARGEMENT DEPUIS LIEN PRATICIEN ──
+function loadFromUrl() {
+  var params = new URLSearchParams(window.location.search);
+  var reloadData = params.get('reload');
+  if (!reloadData) return;
+  try {
+    var decoded = decodeURIComponent(escape(atob(reloadData)));
+    var lines = decoded.split('\n');
+    lines.forEach(function(line) {
+      line = line.trim();
+      if (!line || line.indexOf('Q') !== 0) return;
+      var spaceIdx = line.indexOf(' ');
+      if (spaceIdx === -1) return;
+      var qnum = line.substring(1, spaceIdx);
+      var rest = line.substring(spaceIdx + 1);
+      var colonIdx = rest.lastIndexOf(' : ');
+      if (colonIdx === -1) return;
+      var valStr = rest.substring(colonIdx + 3).trim();
+      var noteMatch = valStr.match(/^(\d+)\/10/);
+      if (noteMatch) {
+        var val = parseInt(noteMatch[1]);
+        // Set range input
+        var rangeEl = document.getElementById('range_' + qnum);
+        if (rangeEl) {
+          rangeEl.value = val;
+          updateIntensity(qnum, val);
+        }
+      }
+    });
+    // Auto-enter praticien mode after loading
+    setTimeout(function() {
+      alert('Questionnaire chargé ! Entrez en mode Praticien pour compléter.');
+    }, 500);
+  } catch(e) { console.log('Reload error:', e); }
+}
+
+window.addEventListener('load', function() {
+  setTimeout(loadFromUrl, 1000);
+});
 var _origGoTo = goToSection;
 goToSection = function(n) {
   _origGoTo(n);
