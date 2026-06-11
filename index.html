@@ -3701,17 +3701,53 @@ function envoyerQuestionnaire() {
   msg += 'Raison : ' + (praison2 ? praison2.value : '') + '\n';
   msg += '\n';
 
-  // Add only range values >= 5
+  // Add range values >= 1 with intensity and comments
+  var processedCards = new Set();
   document.querySelectorAll('input[type=range]').forEach(function(inp) {
     var v = parseInt(inp.value);
-    if (v >= 5) {
-      var card = inp.closest('.question-card');
-      if (card) {
-        var qt = card.querySelector('.q-num');
-        var ql = card.querySelector('.q-text');
-        msg += (qt ? qt.textContent : '') + ' — ' + (ql ? ql.textContent.substring(0,50) : '') + ' : ' + v + '/10\n';
-      }
+    if (v < 1) return;
+    var card = inp.closest('.question-card');
+    if (!card) return;
+    var qt = card.querySelector('.q-num');
+    var ql = card.querySelector('.q-text');
+    if (!qt) return;
+    var qid = qt.textContent;
+
+    // Get range label (Fréquence/Intensité)
+    var rg = inp.closest('.response-group');
+    var rlbl = rg ? (rg.querySelector('label') ? rg.querySelector('label').textContent.replace(/\(0–10\)/,'').trim() : '') : '';
+
+    msg += qid + ' — ' + (ql ? ql.textContent.substring(0,60) : '');
+    if (rlbl) msg += ' [' + rlbl + ']';
+    msg += ' : ' + v + '/10\n';
+
+    // Add comment once per card
+    if (!processedCards.has(card)) {
+      processedCards.add(card);
+      var comment = card.querySelector('textarea.field-input');
+      if (comment && comment.value) msg += qid + ' [commentaire] : ' + comment.value + '\n';
+      var depEl = card.querySelector('input[id^=dep_]');
+      if (depEl && depEl.value) msg += qid + ' [depuis] : ' + depEl.value + '\n';
     }
+  });
+
+  // Add praticien notes from annotations
+  document.querySelectorAll('.practitioner-annotation textarea').forEach(function(ta) {
+    if (!ta.value) return;
+    var card = ta.closest('.question-card');
+    if (!card) return;
+    var qt = card.querySelector('.q-num');
+    if (qt) msg += qt.textContent + ' [annotation praticien] : ' + ta.value + '\n';
+  });
+
+  // Add praticien context checkboxes
+  document.querySelectorAll('input[id^=pctx_]').forEach(function(cb) {
+    if (!cb.checked) return;
+    var card = cb.closest('.question-card');
+    if (!card) return;
+    var qt = card.querySelector('.q-num');
+    var lbl = cb.parentElement ? cb.parentElement.textContent.trim() : '';
+    if (qt && lbl) msg += qt.textContent + ' [praticien] : ' + lbl + '\n';
   });
 
   // Generate reload link for praticien
@@ -3853,9 +3889,11 @@ function buildPrintHtml(vierge) {
       if (!qnum || !qtext) return;
 
       var rangeInputs = card.querySelectorAll('input[type=range]');
-      var yesno = card.querySelector('input[type=hidden][id^=yn_]');
+      var yesno = card.querySelector('input[type=hidden][id^=yn_], input[type=hidden][id^=q_]');
       var comment = card.querySelector('textarea.field-input:not(.practitioner-annotation textarea)');
       var annot = card.querySelector('.practitioner-annotation textarea');
+      // Text field value (ex: Q6 réveils nombre)
+      var textVal = card.querySelector('input[type=text][id^=val_]');
 
       var hasAnswer = false;
       var valueStr = '';
@@ -3872,6 +3910,7 @@ function buildPrintHtml(vierge) {
       if (yesno && yesno.value) {
         hasAnswer = true;
         valueStr = yesno.value;
+        if (textVal && textVal.value) valueStr += ' (' + textVal.value + ')';
       }
 
       if (!vierge && !hasAnswer) return;
