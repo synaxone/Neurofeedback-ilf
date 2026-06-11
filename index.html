@@ -3912,6 +3912,10 @@ function buildViergeHtml() {
     .q-line { border-bottom: 1px solid #ddd; margin-top: 4px; height: 14px; }
     .q-sub { margin-left: 16px; margin-top: 2px; font-size: 10px; color: #444; }
     .q-sub-line { border-bottom: 1px solid #eee; height: 12px; margin: 2px 0 2px 16px; }
+    .card-title { font-weight: bold; font-size: 12px; margin: 10px 0 4px; color: #3a2d8f; border-bottom: 1px solid #3a2d8f; padding-bottom: 2px; }
+    .info-note { font-size: 10px; color: #666; margin-bottom: 4px; font-style: italic; }
+    .textarea-blank { border: 1px solid #ccc; min-height: 40px; margin: 4px 0 8px; border-radius: 3px; }
+    .textarea-blank.large { min-height: 70px; }
     @media print { body { margin: 10px; } }
   </style>`;
 
@@ -3993,43 +3997,69 @@ function buildViergeHtml() {
 }
 
 function buildPrintHtml(vierge) {
-  var nom = '';
-  var pnom = document.getElementById('p_nom'); if (pnom) nom = pnom.value;
-  var pprenom = document.getElementById('p_prenom'); if (pprenom) nom = pprenom.value + ' ' + nom;
-  var praison = document.getElementById('p_raison');
-  var page = document.getElementById('p_age');
+  function v(id) { var el = document.getElementById(id); return el ? (el.value || '') : ''; }
+  function getLabel(id) {
+    var el = document.getElementById(id);
+    if (!el) return '';
+    var parent = el.closest('.info-field, .response-group');
+    if (parent) { var lbl = parent.querySelector('label'); if (lbl) return lbl.textContent.trim(); }
+    return '';
+  }
 
   var css = `<style>
     body { font-family: Arial, sans-serif; font-size: 11px; margin: 20px; color: #222; }
-    h1 { font-size: 14px; color: #3a2d8f; border-bottom: 2px solid #3a2d8f; padding-bottom: 6px; }
-    .info { margin-bottom: 12px; font-size: 11px; }
+    h1 { font-size: 14px; color: #3a2d8f; border-bottom: 2px solid #3a2d8f; padding-bottom: 6px; margin-bottom: 12px; }
     .section-title { background: #3a2d8f; color: white; padding: 4px 8px; font-size: 11px; font-weight: bold; margin: 10px 0 4px; border-radius: 4px; }
-    .question { margin: 4px 0; padding: 4px 8px; border-left: 2px solid #eee; page-break-inside: avoid; }
-    .question.answered { border-left: 3px solid #3a2d8f; background: #f8f6ff; }
-    .q-label { font-size: 10px; color: #666; margin-bottom: 2px; }
-    .q-text { font-size: 11px; font-weight: 500; }
-    .q-value { font-size: 13px; font-weight: bold; color: #3a2d8f; float: right; }
-    .q-comment { font-size: 10px; color: #444; margin-top: 2px; font-style: italic; }
-    .q-line { border-bottom: 1px solid #ddd; margin-top: 8px; height: 16px; }
+    .card-title { font-weight: bold; font-size: 12px; margin: 8px 0 4px; color: #3a2d8f; border-bottom: 1px solid #3a2d8f; padding-bottom: 2px; }
+    .field { margin: 3px 0; font-size: 11px; }
+    .field-label { font-weight: bold; color: #555; }
+    .field-value { color: #000; margin-left: 4px; }
+    .question { margin: 4px 0; padding: 4px 8px; border-left: 2px solid #3a2d8f; background: #f8f6ff; page-break-inside: avoid; }
+    .q-num { font-size: 9px; color: #3a2d8f; font-weight: bold; }
+    .q-text { font-size: 10px; color: #555; margin-bottom: 2px; }
+    .q-value { font-size: 12px; font-weight: bold; color: #3a2d8f; }
+    .q-comment { font-size: 10px; color: #444; font-style: italic; }
+    .q-prat { font-size: 10px; color: #7c2d8e; font-style: italic; }
     @media print { body { margin: 10px; } }
   </style>`;
 
-  var sections = ['sec0','sec1','sec2','sec3','sec4','sec5','sec6','sec7','sec8','sec9'];
-  var sectionNames = {
-    'sec0':'Informations','sec1':'Sommeil','sec2':'Cognition','sec3':'Perception',
-    'sec4':'Comportements','sec5':'Émotionnel','sec6':'Problèmes physiques et maladies',
-    'sec7':'Petite enfance','sec8':'Expériences traumatiques','sec9':'Informations complémentaires'
-  };
+  var body = '<h1>Questionnaire Neurofeedback ILF — ' + (v('p_prenom') + ' ' + v('p_nom')).trim() + '</h1>';
 
-  var body = '<h1>Questionnaire Neurofeedback ILF</h1>';
-  body += '<div class="info"><strong>' + nom.trim() + '</strong>';
-  if (page && page.value) body += ' — ' + page.value + ' ans';
-  if (praison && praison.value) body += ' — ' + praison.value;
-  body += '</div>';
+  // ── Section 1 : Infos personnelles ──
+  body += '<div class="section-title">1. Informations personnelles</div>';
+  body += '<div class="card-title">Identité</div>';
+  var fields0 = [
+    ['Nom', v('p_nom')], ['Prénom', v('p_prenom')],
+    ['Date de naissance', v('p_ddn')], ['Âge', v('p_age')],
+    ['Téléphone', v('p_tel')], ['Email', v('p_email')],
+    ['Ville', v('p_ville')], ['Enceinte', v('p_enceinte')],
+    ['Main dominante', v('p_main')], ['Comment connu le NFB', v('p_source')]
+  ];
+  fields0.forEach(function(f) { if (f[1]) body += '<div class="field"><span class="field-label">' + f[0] + ' :</span><span class="field-value">' + f[1] + '</span></div>'; });
 
-  sections.forEach(function(secId) {
-    var sec = document.getElementById(secId);
-    if (!sec) return;
+  body += '<div class="card-title">Raison de la venue</div>';
+  if (v('p_raison')) body += '<div class="field">' + v('p_raison') + '</div>';
+
+  body += '<div class="card-title">Contexte de vie</div>';
+  var fields1 = [
+    ['Profession', v('p_profession')], ['Travail', v('p_travail')],
+    ['Situation familiale', v('p_situation')], ['Nombre d'enfants', v('p_enfants')]
+  ];
+  fields1.forEach(function(f) { if (f[1]) body += '<div class="field"><span class="field-label">' + f[0] + ' :</span><span class="field-value">' + f[1] + '</span></div>'; });
+
+  body += '<div class="card-title">Relations familiales</div>';
+  var fields2 = [
+    ['Père', v('p_pere')], ['Mère', v('p_mere')],
+    ['Frères/Sœurs', v('p_fratrie')], ['Enfants', v('p_rel_enfants')],
+    ['Loisirs', v('p_loisirs')], ['Événements importants', v('p_evenements')]
+  ];
+  fields2.forEach(function(f) { if (f[1]) body += '<div class="field"><span class="field-label">' + f[0] + ' :</span><br>' + f[1].replace(/\n/g,'<br>') + '</div>'; });
+
+  // ── Sections questionnaire ──
+  var allSecs = document.querySelectorAll('.section');
+  allSecs.forEach(function(sec) {
+    if (sec.id === 'sec0') return; // already handled
+    var title = sec.querySelector('.section-title');
     var cards = sec.querySelectorAll('.question-card');
     if (cards.length === 0) return;
 
@@ -4037,83 +4067,84 @@ function buildPrintHtml(vierge) {
     cards.forEach(function(card) {
       var qnum = card.querySelector('.q-num');
       var qtext = card.querySelector('.q-text');
-      if (!qnum || !qtext) return;
+      if (!qnum) return;
 
-      var rangeInputs = card.querySelectorAll('input[type=range]');
-      var yesno = card.querySelector('input[type=hidden][id^=yn_], input[type=hidden][id^=q_]');
-      var comment = card.querySelector('textarea.field-input:not(.practitioner-annotation textarea)');
-      var annot = card.querySelector('.practitioner-annotation textarea');
-      var textVal = card.querySelector('input[type=text][id^=val_]');
-      var numInputs = card.querySelectorAll('input[type=number]');
-      var checkboxes = card.querySelectorAll('input[type=checkbox]:not([id^=pctx_])');
-      var selects = card.querySelectorAll('select');
+      var lines = [];
 
-      var hasAnswer = false;
-      var valueStr = '';
-
-      rangeInputs.forEach(function(inp) {
+      // All range inputs
+      card.querySelectorAll('input[type=range]').forEach(function(inp) {
         if (parseInt(inp.value) > 0) {
-          hasAnswer = true;
-          var lbl = inp.closest('.response-group');
-          var lblText = lbl ? (lbl.querySelector('label') ? lbl.querySelector('label').textContent.replace(/\(0–10\)/,'').trim() : '') : '';
-          valueStr += (lblText ? lblText + ': ' : '') + inp.value + '/10  ';
-        }
-      });
-
-      if (yesno && yesno.value) {
-        hasAnswer = true;
-        valueStr = yesno.value;
-        if (textVal && textVal.value) valueStr += ' (' + textVal.value + ')';
-      }
-
-      numInputs.forEach(function(inp) {
-        if (inp.value) {
-          hasAnswer = true;
           var rg = inp.closest('.response-group');
-          var rlbl = rg ? (rg.querySelector('label') ? rg.querySelector('label').textContent.trim() : '') : '';
-          valueStr += (rlbl ? rlbl + ': ' : '') + inp.value + '  ';
+          var lbl = rg && rg.querySelector('label') ? rg.querySelector('label').textContent.replace(/\(0–10\)/,'').trim() : '';
+          lines.push((lbl ? lbl + ': ' : '') + inp.value + '/10');
         }
       });
 
-      checkboxes.forEach(function(cb) {
+      // Hidden yesno
+      card.querySelectorAll('input[type=hidden]').forEach(function(inp) {
+        if (inp.value) lines.push(inp.value);
+      });
+
+      // Number inputs
+      card.querySelectorAll('input[type=number]').forEach(function(inp) {
+        if (inp.value) {
+          var rg = inp.closest('.response-group');
+          var lbl = rg && rg.querySelector('label') ? rg.querySelector('label').textContent.trim() : '';
+          lines.push((lbl ? lbl + ': ' : '') + inp.value);
+        }
+      });
+
+      // Text inputs (not dep_)
+      card.querySelectorAll('input[type=text]:not([id^=dep_])').forEach(function(inp) {
+        if (inp.value && !inp.readOnly) {
+          var rg = inp.closest('.response-group');
+          var lbl = rg && rg.querySelector('label') ? rg.querySelector('label').textContent.trim() : '';
+          lines.push((lbl ? lbl + ': ' : '') + inp.value);
+        }
+      });
+
+      // Checkboxes
+      card.querySelectorAll('input[type=checkbox]:not([id^=pctx_])').forEach(function(cb) {
         if (cb.checked) {
-          hasAnswer = true;
           var lbl = cb.closest('label');
-          if (lbl) valueStr += '✓ ' + lbl.textContent.trim() + '  ';
+          if (lbl) lines.push('☑ ' + lbl.textContent.trim());
         }
       });
 
-      selects.forEach(function(sel) {
+      // Select
+      card.querySelectorAll('select').forEach(function(sel) {
         if (sel.value) {
-          hasAnswer = true;
-          valueStr += sel.value + '  ';
+          var rg = sel.closest('.response-group');
+          var lbl = rg && rg.querySelector('label') ? rg.querySelector('label').textContent.trim() : '';
+          lines.push((lbl ? lbl + ': ' : '') + sel.value);
         }
       });
 
-      if (!vierge && !hasAnswer) return;
+      if (lines.length === 0) return;
 
-      var qHtml = '<div class="question' + (hasAnswer ? ' answered' : '') + '">';
-      qHtml += '<span class="q-label">' + qnum.textContent + '</span>';
-      if (!vierge && hasAnswer && valueStr) qHtml += '<span class="q-value">' + valueStr.trim() + '</span>';
-      qHtml += '<div class="q-text">' + qtext.textContent.trim() + '</div>';
-      if (!vierge && comment && comment.value) qHtml += '<div class="q-comment">💬 ' + comment.value + '</div>';
-      if (!vierge && annot && annot.value) qHtml += '<div class="q-comment" style="color:#7c2d8e">✦ ' + annot.value + '</div>';
+      var comment = card.querySelector('textarea.field-input:not(.practitioner-annotation textarea)');
+      var dep = card.querySelector('input[id^=dep_]');
+      var annot = card.querySelector('.practitioner-annotation textarea');
+
+      secContent += '<div class="question">';
+      secContent += '<div class="q-num">' + qnum.textContent + '</div>';
+      if (qtext) secContent += '<div class="q-text">' + qtext.textContent.trim() + '</div>';
+      secContent += '<div class="q-value">' + lines.join(' | ') + '</div>';
+      if (comment && comment.value) secContent += '<div class="q-comment">💬 ' + comment.value + '</div>';
+      if (dep && dep.value) secContent += '<div class="q-comment">📅 Depuis : ' + dep.value + '</div>';
+      if (annot && annot.value) secContent += '<div class="q-prat">✦ ' + annot.value + '</div>';
       // Praticien checkboxes
-      if (!vierge) {
-        card.querySelectorAll('input[id^=pctx_]').forEach(function(cb) {
-          if (cb.checked) {
-            var lbl = cb.parentElement ? cb.parentElement.textContent.trim() : '';
-            if (lbl) qHtml += '<div class="q-comment" style="color:#7c2d8e">☑ ' + lbl + '</div>';
-          }
-        });
-      }
-      if (vierge) qHtml += '<div class="q-line"></div>';
-      qHtml += '</div>';
-      secContent += qHtml;
+      card.querySelectorAll('input[id^=pctx_]').forEach(function(cb) {
+        if (cb.checked) {
+          var lbl = cb.parentElement ? cb.parentElement.textContent.trim() : '';
+          if (lbl) secContent += '<div class="q-prat">☑ ' + lbl + '</div>';
+        }
+      });
+      secContent += '</div>';
     });
 
     if (secContent) {
-      body += '<div class="section-title">' + (sectionNames[secId] || secId) + '</div>';
+      if (title) body += '<div class="section-title">' + title.textContent.trim() + '</div>';
       body += secContent;
     }
   });
