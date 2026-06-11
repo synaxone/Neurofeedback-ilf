@@ -3768,44 +3768,112 @@ function showConfirmation() {
 }
 
 function imprimerQuestionnaire() {
-  // Show all sections first
-  var sections = document.querySelectorAll('.section');
-  var hidden = [];
-  sections.forEach(function(s) {
-    if (s.style.display === 'none') {
-      hidden.push(s);
-      s.style.display = 'block';
-    }
-  });
-  // Mark answered questions
-  updateAnswerHighlights();
-  // Add print class
-  document.body.classList.add('print-rempli');
-  setTimeout(function() {
-    window.print();
-    setTimeout(function() {
-      hidden.forEach(function(s) { s.style.display = 'none'; });
-      document.body.classList.remove('print-rempli');
-    }, 500);
-  }, 200);
+  var html = buildPrintHtml(false);
+  var win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(function() { win.print(); }, 500);
 }
 
 function imprimerVierge() {
-  // Show all sections temporarily
-  var sections = document.querySelectorAll('.section');
-  var hidden = [];
-  sections.forEach(function(s) {
-    if (s.style.display === 'none') {
-      hidden.push(s);
-      s.style.display = 'block';
+  var html = buildPrintHtml(true);
+  var win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(function() { win.print(); }, 500);
+}
+
+function buildPrintHtml(vierge) {
+  var nom = '';
+  var pnom = document.getElementById('p_nom'); if (pnom) nom = pnom.value;
+  var pprenom = document.getElementById('p_prenom'); if (pprenom) nom = pprenom.value + ' ' + nom;
+  var praison = document.getElementById('p_raison');
+  var page = document.getElementById('p_age');
+
+  var css = `<style>
+    body { font-family: Arial, sans-serif; font-size: 11px; margin: 20px; color: #222; }
+    h1 { font-size: 14px; color: #3a2d8f; border-bottom: 2px solid #3a2d8f; padding-bottom: 6px; }
+    .info { margin-bottom: 12px; font-size: 11px; }
+    .section-title { background: #3a2d8f; color: white; padding: 4px 8px; font-size: 11px; font-weight: bold; margin: 10px 0 4px; border-radius: 4px; }
+    .question { margin: 4px 0; padding: 4px 8px; border-left: 2px solid #eee; page-break-inside: avoid; }
+    .question.answered { border-left: 3px solid #3a2d8f; background: #f8f6ff; }
+    .q-label { font-size: 10px; color: #666; margin-bottom: 2px; }
+    .q-text { font-size: 11px; font-weight: 500; }
+    .q-value { font-size: 13px; font-weight: bold; color: #3a2d8f; float: right; }
+    .q-comment { font-size: 10px; color: #444; margin-top: 2px; font-style: italic; }
+    .q-line { border-bottom: 1px solid #ddd; margin-top: 8px; height: 16px; }
+    @media print { body { margin: 10px; } }
+  </style>`;
+
+  var sections = ['sec0','sec1','sec2','sec3','sec4','sec5','sec6','sec7','sec8','sec9'];
+  var sectionNames = {
+    'sec0':'Informations','sec1':'Sommeil','sec2':'Cognition','sec3':'Perception',
+    'sec4':'Comportements','sec5':'Émotionnel','sec6':'Problèmes physiques et maladies',
+    'sec7':'Petite enfance','sec8':'Expériences traumatiques','sec9':'Informations complémentaires'
+  };
+
+  var body = '<h1>Questionnaire Neurofeedback ILF</h1>';
+  body += '<div class="info"><strong>' + nom.trim() + '</strong>';
+  if (page && page.value) body += ' — ' + page.value + ' ans';
+  if (praison && praison.value) body += ' — ' + praison.value;
+  body += '</div>';
+
+  sections.forEach(function(secId) {
+    var sec = document.getElementById(secId);
+    if (!sec) return;
+    var cards = sec.querySelectorAll('.question-card');
+    if (cards.length === 0) return;
+
+    var secContent = '';
+    cards.forEach(function(card) {
+      var qnum = card.querySelector('.q-num');
+      var qtext = card.querySelector('.q-text');
+      if (!qnum || !qtext) return;
+
+      var rangeInputs = card.querySelectorAll('input[type=range]');
+      var yesno = card.querySelector('input[type=hidden][id^=yn_]');
+      var comment = card.querySelector('textarea.field-input:not(.practitioner-annotation textarea)');
+      var annot = card.querySelector('.practitioner-annotation textarea');
+
+      var hasAnswer = false;
+      var valueStr = '';
+
+      rangeInputs.forEach(function(inp) {
+        if (parseInt(inp.value) > 0) {
+          hasAnswer = true;
+          var lbl = inp.closest('.response-group');
+          var lblText = lbl ? (lbl.querySelector('label') ? lbl.querySelector('label').textContent.replace(/\(0–10\)/,'').trim() : '') : '';
+          valueStr += (lblText ? lblText + ': ' : '') + inp.value + '/10  ';
+        }
+      });
+
+      if (yesno && yesno.value) {
+        hasAnswer = true;
+        valueStr = yesno.value;
+      }
+
+      if (!vierge && !hasAnswer) return;
+
+      var qHtml = '<div class="question' + (hasAnswer ? ' answered' : '') + '">';
+      qHtml += '<span class="q-label">' + qnum.textContent + '</span>';
+      if (hasAnswer && valueStr) qHtml += '<span class="q-value">' + valueStr.trim() + '</span>';
+      qHtml += '<div class="q-text">' + qtext.textContent.trim() + '</div>';
+      if (comment && comment.value) qHtml += '<div class="q-comment">💬 ' + comment.value + '</div>';
+      if (annot && annot.value) qHtml += '<div class="q-comment" style="color:#7c2d8e">✦ ' + annot.value + '</div>';
+      if (vierge) qHtml += '<div class="q-line"></div>';
+      qHtml += '</div>';
+      secContent += qHtml;
+    });
+
+    if (secContent) {
+      body += '<div class="section-title">' + (sectionNames[secId] || secId) + '</div>';
+      body += secContent;
     }
   });
-  document.body.classList.add('print-vierge');
-  window.print();
-  setTimeout(function() {
-    hidden.forEach(function(s) { s.style.display = 'none'; });
-    document.body.classList.remove('print-vierge');
-  }, 1000);
+
+  return '<!DOCTYPE html><html><head><meta charset="utf-8">' + css + '</head><body>' + body + '</body></html>';
 }
 
 // Update recap when navigating to section 9
