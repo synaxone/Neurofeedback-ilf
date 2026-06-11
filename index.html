@@ -1323,6 +1323,10 @@ function goToSection(n) {
   if (header) header.style.display = n === 0 ? 'block' : 'none';
 
   // Populate name on thank you page
+  if (n === 9) {
+    updateRecap();
+  }
+
   if (n === 10) {
     var prenom10 = document.getElementById('p_prenom') ? document.getElementById('p_prenom').value : '';
     var nom10 = document.getElementById('p_nom') ? document.getElementById('p_nom').value : '';
