@@ -3917,10 +3917,10 @@ function buildPrintHtml(vierge) {
 
       var qHtml = '<div class="question' + (hasAnswer ? ' answered' : '') + '">';
       qHtml += '<span class="q-label">' + qnum.textContent + '</span>';
-      if (hasAnswer && valueStr) qHtml += '<span class="q-value">' + valueStr.trim() + '</span>';
+      if (!vierge && hasAnswer && valueStr) qHtml += '<span class="q-value">' + valueStr.trim() + '</span>';
       qHtml += '<div class="q-text">' + qtext.textContent.trim() + '</div>';
-      if (comment && comment.value) qHtml += '<div class="q-comment">💬 ' + comment.value + '</div>';
-      if (annot && annot.value) qHtml += '<div class="q-comment" style="color:#7c2d8e">✦ ' + annot.value + '</div>';
+      if (!vierge && comment && comment.value) qHtml += '<div class="q-comment">💬 ' + comment.value + '</div>';
+      if (!vierge && annot && annot.value) qHtml += '<div class="q-comment" style="color:#7c2d8e">✦ ' + annot.value + '</div>';
       if (vierge) qHtml += '<div class="q-line"></div>';
       qHtml += '</div>';
       secContent += qHtml;
