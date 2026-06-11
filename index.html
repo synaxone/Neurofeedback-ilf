@@ -3922,6 +3922,10 @@ function buildViergeHtml() {
     { title: 'Comportements', questions: typeof comportementsQuestions !== 'undefined' ? comportementsQuestions : [] },
     { title: 'Émotionnel', questions: typeof emotionnelQuestions !== 'undefined' ? emotionnelQuestions : [] },
     { title: 'Problèmes physiques et maladies', questions: typeof physiqueQuestions !== 'undefined' ? physiqueQuestions : [] },
+    { title: 'Petite enfance', questions: typeof petiteEnfanceQuestions !== 'undefined' ? petiteEnfanceQuestions : [] },
+    { title: 'Expériences traumatiques', questions: typeof traumaQuestions !== 'undefined' ? traumaQuestions : [] },
+    { title: 'Médication et thérapies', questions: typeof medicQuestions !== 'undefined' ? medicQuestions : [] },
+    { title: 'Antécédents familiaux', questions: typeof familiauxQuestions !== 'undefined' ? familiauxQuestions : [] },
   ];
 
   var body = '<h1>Questionnaire Neurofeedback ILF — Version vierge</h1>';
@@ -3935,7 +3939,34 @@ function buildViergeHtml() {
   body += '<div class="info-line"><span class="info-label">Profession :</span><span class="info-line-blank"></span></div>';
   body += '<div class="info-line"><span class="info-label">Email :</span><span class="info-line-blank"></span></div>';
   body += '<div class="info-line"><span class="info-label">Téléphone :</span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line"><span class="info-label">Ville :</span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line"><span class="info-label">Main dominante :</span><span class="info-line-blank"></span></div>';
   body += '<div class="info-line"><span class="info-label">Raison de consultation :</span><span class="info-line-blank"></span></div>';
+  body += '</div>';
+
+  // Contexte de vie
+  body += '<div class="section-title">Contexte de vie actuel</div>';
+  body += '<div class="info-block">';
+  body += '<div class="info-line"><span class="info-label">Situation familiale :</span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line"><span class="info-label">Nombre d\'enfants :</span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line"><span class="info-label">Situation professionnelle :</span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line"><span class="info-label">Nombre d\'heures de sommeil :</span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line"><span class="info-label">Activité physique :</span><span class="info-line-blank"></span></div>';
+  body += '</div>';
+
+  // Relations familiales
+  body += '<div class="section-title">Relations familiales</div>';
+  body += '<div class="info-block">';
+  body += '<div class="info-line"><span class="info-label">Père :</span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line" style="margin-top:-4px"><span class="info-label"></span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line"><span class="info-label">Mère :</span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line" style="margin-top:-4px"><span class="info-label"></span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line"><span class="info-label">Frères/Sœurs :</span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line" style="margin-top:-4px"><span class="info-label"></span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line"><span class="info-label">Enfants :</span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line" style="margin-top:-4px"><span class="info-label"></span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line"><span class="info-label">Conjoint(e) :</span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line" style="margin-top:-4px"><span class="info-label"></span><span class="info-line-blank"></span></div>';
   body += '</div>';
 
   allSections.forEach(function(sec) {
