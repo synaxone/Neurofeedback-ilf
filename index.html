@@ -3768,21 +3768,41 @@ function showConfirmation() {
 }
 
 function imprimerQuestionnaire() {
-  var html = buildPrintHtml(false);
-  var win = window.open('', '_blank');
-  win.document.write(html);
-  win.document.close();
-  win.focus();
-  setTimeout(function() { win.print(); }, 500);
+  // First show all sections so inputs are accessible
+  var sections = document.querySelectorAll('.section');
+  var hidden = [];
+  sections.forEach(function(s) {
+    if (s.style.display === 'none') { hidden.push(s); s.style.display = 'block'; }
+  });
+  // Wait for DOM to update then read values
+  setTimeout(function() {
+    var html = buildPrintHtml(false);
+    // Restore sections
+    hidden.forEach(function(s) { s.style.display = 'none'; });
+    var win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(function() { win.print(); }, 500);
+  }, 300);
 }
 
 function imprimerVierge() {
-  var html = buildPrintHtml(true);
-  var win = window.open('', '_blank');
-  win.document.write(html);
-  win.document.close();
-  win.focus();
-  setTimeout(function() { win.print(); }, 500);
+  // First show all sections so all questions are accessible
+  var sections = document.querySelectorAll('.section');
+  var hidden = [];
+  sections.forEach(function(s) {
+    if (s.style.display === 'none') { hidden.push(s); s.style.display = 'block'; }
+  });
+  setTimeout(function() {
+    var html = buildPrintHtml(true);
+    hidden.forEach(function(s) { s.style.display = 'none'; });
+    var win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(function() { win.print(); }, 500);
+  }, 300);
 }
 
 function buildPrintHtml(vierge) {
