@@ -3708,29 +3708,58 @@ function envoyerQuestionnaire() {
   msg += 'Raison : ' + (praison2 ? praison2.value : '') + '\n';
   msg += '\n';
 
-  // Add range values >= 1 with intensity and comments
+  // Add ALL inputs with values (range, number, text, select, checkbox, yesno)
   var processedCards = new Set();
-  document.querySelectorAll('input[type=range]').forEach(function(inp) {
-    var v = parseInt(inp.value);
-    if (v < 1) return;
-    var card = inp.closest('.question-card');
-    if (!card) return;
+  document.querySelectorAll('.question-card').forEach(function(card) {
     var qt = card.querySelector('.q-num');
     var ql = card.querySelector('.q-text');
     if (!qt) return;
     var qid = qt.textContent;
+    var cardLines = [];
 
-    // Get range label (Fréquence/Intensité)
-    var rg = inp.closest('.response-group');
-    var rlbl = rg ? (rg.querySelector('label') ? rg.querySelector('label').textContent.replace(/\(0–10\)/,'').trim() : '') : '';
+    // Range inputs
+    card.querySelectorAll('input[type=range]').forEach(function(inp) {
+      var v = parseInt(inp.value);
+      if (v < 1) return;
+      var rg = inp.closest('.response-group');
+      var rlbl = rg ? (rg.querySelector('label') ? rg.querySelector('label').textContent.replace(/\(0–10\)/,'').trim() : '') : '';
+      cardLines.push(qid + ' — ' + (ql ? ql.textContent.substring(0,60) : '') + (rlbl ? ' [' + rlbl + ']' : '') + ' : ' + v + '/10');
+    });
 
-    msg += qid + ' — ' + (ql ? ql.textContent.substring(0,60) : '');
-    if (rlbl) msg += ' [' + rlbl + ']';
-    msg += ' : ' + v + '/10\n';
+    // Number and text inputs (not dep_, not field-input search)
+    card.querySelectorAll('input[type=number], input[type=text]:not([id^=dep_])').forEach(function(inp) {
+      if (!inp.value || inp.id === 'praticien_email') return;
+      var rg = inp.closest('.response-group');
+      var rlbl = rg ? (rg.querySelector('label') ? rg.querySelector('label').textContent.trim() : '') : '';
+      if (rlbl) cardLines.push(qid + ' [' + rlbl + '] : ' + inp.value);
+    });
 
-    // Add comment once per card
-    if (!processedCards.has(card)) {
-      processedCards.add(card);
+    // Yesno hidden fields
+    card.querySelectorAll('input[type=hidden][id^=yn_]').forEach(function(inp) {
+      if (inp.value) cardLines.push(qid + ' — ' + (ql ? ql.textContent.substring(0,60) : '') + ' : ' + inp.value);
+    });
+
+    // Checkboxes
+    card.querySelectorAll('input[type=checkbox]:not([id^=pctx_])').forEach(function(cb) {
+      if (cb.checked) {
+        var lbl = cb.closest('label');
+        var lblText = lbl ? lbl.textContent.trim() : '';
+        if (lblText) cardLines.push(qid + ' [coché] : ' + lblText);
+      }
+    });
+
+    // Select
+    card.querySelectorAll('select').forEach(function(sel) {
+      if (sel.value) {
+        var rg = sel.closest('.response-group');
+        var rlbl = rg ? (rg.querySelector('label') ? rg.querySelector('label').textContent.trim() : '') : '';
+        cardLines.push(qid + (rlbl ? ' [' + rlbl + ']' : '') + ' : ' + sel.value);
+      }
+    });
+
+    if (cardLines.length > 0) {
+      msg += cardLines.join('\n') + '\n';
+      // Comment
       var comment = card.querySelector('textarea.field-input');
       if (comment && comment.value) msg += qid + ' [commentaire] : ' + comment.value + '\n';
       var depEl = card.querySelector('input[id^=dep_]');
@@ -3901,8 +3930,10 @@ function buildPrintHtml(vierge) {
       var yesno = card.querySelector('input[type=hidden][id^=yn_], input[type=hidden][id^=q_]');
       var comment = card.querySelector('textarea.field-input:not(.practitioner-annotation textarea)');
       var annot = card.querySelector('.practitioner-annotation textarea');
-      // Text field value (ex: Q6 réveils nombre)
       var textVal = card.querySelector('input[type=text][id^=val_]');
+      var numInputs = card.querySelectorAll('input[type=number]');
+      var checkboxes = card.querySelectorAll('input[type=checkbox]:not([id^=pctx_])');
+      var selects = card.querySelectorAll('select');
 
       var hasAnswer = false;
       var valueStr = '';
@@ -3921,6 +3952,30 @@ function buildPrintHtml(vierge) {
         valueStr = yesno.value;
         if (textVal && textVal.value) valueStr += ' (' + textVal.value + ')';
       }
+
+      numInputs.forEach(function(inp) {
+        if (inp.value) {
+          hasAnswer = true;
+          var rg = inp.closest('.response-group');
+          var rlbl = rg ? (rg.querySelector('label') ? rg.querySelector('label').textContent.trim() : '') : '';
+          valueStr += (rlbl ? rlbl + ': ' : '') + inp.value + '  ';
+        }
+      });
+
+      checkboxes.forEach(function(cb) {
+        if (cb.checked) {
+          hasAnswer = true;
+          var lbl = cb.closest('label');
+          if (lbl) valueStr += '✓ ' + lbl.textContent.trim() + '  ';
+        }
+      });
+
+      selects.forEach(function(sel) {
+        if (sel.value) {
+          hasAnswer = true;
+          valueStr += sel.value + '  ';
+        }
+      });
 
       if (!vierge && !hasAnswer) return;
 
