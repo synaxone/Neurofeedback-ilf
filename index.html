@@ -3875,14 +3875,13 @@ function imprimerQuestionnaire() {
   sections.forEach(function(s) {
     if (s.style.display === 'none') { hiddenSecs.push(s); s.style.display = 'block'; }
   });
-  // Force show all hidden elements
   var hiddenSubs = showAllSubDivs();
-  // Force browser reflow
   document.body.offsetHeight;
   var html = buildPrintHtml(false);
   restoreSubDivs(hiddenSubs);
   hiddenSecs.forEach(function(s) { s.style.display = 'none'; });
   var win = window.open('', '_blank');
+  if (!win) { alert('Veuillez autoriser les popups pour imprimer.'); return; }
   win.document.write(html);
   win.document.close();
   win.focus();
@@ -3891,6 +3890,7 @@ function imprimerQuestionnaire() {
 
 function imprimerVierge() {
   var win = window.open('', '_blank');
+  if (!win) { alert('Veuillez autoriser les popups pour imprimer.'); return; }
   win.document.write(buildViergeHtml());
   win.document.close();
   win.focus();
@@ -4065,15 +4065,16 @@ var CORRECT_PASSWORD = 'NFBILF7';
 
 function checkPassword() {
   var input = document.getElementById('pwd-input');
-  var error = document.getElementById('pwd-error');
-  if (input.value.trim().toUpperCase() === CORRECT_PASSWORD) {
+  if (!input) { alert('input not found'); return; }
+  var val = input.value.trim().toUpperCase();
+  if (val === 'NFBILF7') {
     document.getElementById('password-screen').style.display = 'none';
     input.value = '';
   } else {
-    error.textContent = 'Code incorrect. Veuillez réessayer.';
+    var error = document.getElementById('pwd-error');
+    if (error) error.textContent = 'Code incorrect.';
     input.value = '';
     input.focus();
-    setTimeout(function() { error.textContent = ''; }, 3000);
   }
 }
 
