@@ -3663,6 +3663,13 @@ function envoyerQuestionnaire() {
     return;
   }
 
+  // Show all sections temporarily to access all input values
+  var allSections = document.querySelectorAll('.section');
+  var hiddenSections = [];
+  allSections.forEach(function(s) {
+    if (s.style.display === 'none') { hiddenSections.push(s); s.style.display = 'block'; }
+  });
+
   var btn = document.querySelector('[onclick="envoyerQuestionnaire()"]');
   if (btn) { btn.textContent = '⏳ Envoi en cours…'; btn.disabled = true; }
 
@@ -3773,12 +3780,14 @@ function envoyerQuestionnaire() {
     message: msg,
     to_email: emailDest
   }).then(function() {
+    hiddenSections.forEach(function(s) { s.style.display = 'none'; });
     showConfirmation();
   }).catch(function(err) {
     // Fallback mailto
     var subject = encodeURIComponent('Questionnaire NF - ' + nom.trim());
     var body = encodeURIComponent(msg);
     window.location.href = 'mailto:' + emailDest + '?subject=' + subject + '&body=' + body;
+    hiddenSections.forEach(function(s) { s.style.display = 'none'; });
     showConfirmation();
   });
 }
@@ -3820,7 +3829,7 @@ function imprimerQuestionnaire() {
     win.document.close();
     win.focus();
     setTimeout(function() { win.print(); }, 500);
-  }, 300);
+  }, 800);
 }
 
 function imprimerVierge() {
@@ -3838,7 +3847,7 @@ function imprimerVierge() {
     win.document.close();
     win.focus();
     setTimeout(function() { win.print(); }, 500);
-  }, 300);
+  }, 800);
 }
 
 function buildPrintHtml(vierge) {
