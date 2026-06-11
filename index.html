@@ -3845,17 +3845,28 @@ function showConfirmation() {
 }
 
 function showAllSubDivs() {
-  // Force show all hidden sub-divs inside question cards
   var hidden = [];
+  // Show hidden sub-divs (inline style)
   document.querySelectorAll('.question-card [style*="display:none"], .question-card [style*="display: none"]').forEach(function(el) {
-    hidden.push({el: el, style: el.style.display});
+    hidden.push({el: el, style: el.style.display, type: 'inline'});
     el.style.display = 'block';
+  });
+  // Show practitioner-only divs (CSS class)
+  document.querySelectorAll('.practitioner-only').forEach(function(el) {
+    hidden.push({el: el, style: el.style.display, type: 'class'});
+    el.style.setProperty('display', 'block', 'important');
   });
   return hidden;
 }
 
 function restoreSubDivs(hidden) {
-  hidden.forEach(function(item) { item.el.style.display = item.style; });
+  hidden.forEach(function(item) {
+    if (item.type === 'class') {
+      item.el.style.removeProperty('display');
+    } else {
+      item.el.style.display = item.style;
+    }
+  });
 }
 
 function imprimerQuestionnaire() {
@@ -3864,40 +3875,90 @@ function imprimerQuestionnaire() {
   sections.forEach(function(s) {
     if (s.style.display === 'none') { hiddenSecs.push(s); s.style.display = 'block'; }
   });
-  setTimeout(function() {
-    var hiddenSubs = showAllSubDivs();
-    setTimeout(function() {
-      var html = buildPrintHtml(false);
-      restoreSubDivs(hiddenSubs);
-      hiddenSecs.forEach(function(s) { s.style.display = 'none'; });
-      var win = window.open('', '_blank');
-      win.document.write(html);
-      win.document.close();
-      win.focus();
-      setTimeout(function() { win.print(); }, 500);
-    }, 300);
-  }, 800);
+  // Force show all hidden elements
+  var hiddenSubs = showAllSubDivs();
+  // Force browser reflow
+  document.body.offsetHeight;
+  var html = buildPrintHtml(false);
+  restoreSubDivs(hiddenSubs);
+  hiddenSecs.forEach(function(s) { s.style.display = 'none'; });
+  var win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(function() { win.print(); }, 500);
 }
 
 function imprimerVierge() {
-  var sections = document.querySelectorAll('.section');
-  var hiddenSecs = [];
-  sections.forEach(function(s) {
-    if (s.style.display === 'none') { hiddenSecs.push(s); s.style.display = 'block'; }
+  var win = window.open('', '_blank');
+  win.document.write(buildViergeHtml());
+  win.document.close();
+  win.focus();
+  setTimeout(function() { win.print(); }, 500);
+}
+
+function buildViergeHtml() {
+  var css = `<style>
+    body { font-family: Arial, sans-serif; font-size: 11px; margin: 20px; color: #222; }
+    h1 { font-size: 14px; color: #3a2d8f; border-bottom: 2px solid #3a2d8f; padding-bottom: 6px; }
+    .info-block { margin-bottom: 16px; }
+    .info-line { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .info-label { font-weight: bold; min-width: 120px; font-size: 11px; }
+    .info-line-blank { border-bottom: 1px solid #999; flex: 1; height: 18px; }
+    .section-title { background: #3a2d8f; color: white; padding: 4px 8px; font-size: 11px; font-weight: bold; margin: 10px 0 4px; border-radius: 4px; }
+    .question { margin: 3px 0; padding: 4px 8px; border-left: 2px solid #eee; page-break-inside: avoid; }
+    .q-label { font-size: 9px; color: #666; }
+    .q-text { font-size: 11px; font-weight: 500; margin-bottom: 4px; }
+    .q-line { border-bottom: 1px solid #ddd; margin-top: 4px; height: 14px; }
+    .q-sub { margin-left: 16px; margin-top: 2px; font-size: 10px; color: #444; }
+    .q-sub-line { border-bottom: 1px solid #eee; height: 12px; margin: 2px 0 2px 16px; }
+    @media print { body { margin: 10px; } }
+  </style>`;
+
+  var allSections = [
+    { title: 'Sommeil', questions: typeof sommeilQuestions !== 'undefined' ? sommeilQuestions : [] },
+    { title: 'Cognition / Attention', questions: typeof cognitionQuestions !== 'undefined' ? cognitionQuestions : [] },
+    { title: 'Perception sensorielle', questions: typeof perceptionQuestions !== 'undefined' ? perceptionQuestions : [] },
+    { title: 'Comportements', questions: typeof comportementsQuestions !== 'undefined' ? comportementsQuestions : [] },
+    { title: 'Émotionnel', questions: typeof emotionnelQuestions !== 'undefined' ? emotionnelQuestions : [] },
+    { title: 'Problèmes physiques et maladies', questions: typeof physiqueQuestions !== 'undefined' ? physiqueQuestions : [] },
+  ];
+
+  var body = '<h1>Questionnaire Neurofeedback ILF — Version vierge</h1>';
+
+  // Info patient
+  body += '<div class="info-block">';
+  body += '<div class="info-line"><span class="info-label">Nom :</span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line"><span class="info-label">Prénom :</span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line"><span class="info-label">Date de naissance :</span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line"><span class="info-label">Âge :</span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line"><span class="info-label">Profession :</span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line"><span class="info-label">Email :</span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line"><span class="info-label">Téléphone :</span><span class="info-line-blank"></span></div>';
+  body += '<div class="info-line"><span class="info-label">Raison de consultation :</span><span class="info-line-blank"></span></div>';
+  body += '</div>';
+
+  allSections.forEach(function(sec) {
+    if (!sec.questions || sec.questions.length === 0) return;
+    body += '<div class="section-title">' + sec.title + '</div>';
+    sec.questions.forEach(function(q) {
+      if (q.special === 'titre') return; // skip section titles
+      var qtext = q.text || '';
+      body += '<div class="question">';
+      body += '<span class="q-label">Q' + q.num + '</span>';
+      body += '<div class="q-text">' + qtext + '</div>';
+      // Add sub-lines for contexts
+      if (q.contexts) {
+        q.contexts.forEach(function(ctx) {
+          body += '<div class="q-sub">— ' + ctx + ' : <span class="q-sub-line" style="display:inline-block;width:150px;border-bottom:1px solid #ccc"></span></div>';
+        });
+      }
+      body += '<div class="q-line"></div>';
+      body += '</div>';
+    });
   });
-  setTimeout(function() {
-    var hiddenSubs = showAllSubDivs();
-    setTimeout(function() {
-      var html = buildPrintHtml(true);
-      restoreSubDivs(hiddenSubs);
-      hiddenSecs.forEach(function(s) { s.style.display = 'none'; });
-      var win = window.open('', '_blank');
-      win.document.write(html);
-      win.document.close();
-      win.focus();
-      setTimeout(function() { win.print(); }, 500);
-    }, 300);
-  }, 800);
+
+  return '<!DOCTYPE html><html><head><meta charset="utf-8">' + css + '</head><body>' + body + '</body></html>';
 }
 
 function buildPrintHtml(vierge) {
@@ -4006,6 +4067,15 @@ function buildPrintHtml(vierge) {
       qHtml += '<div class="q-text">' + qtext.textContent.trim() + '</div>';
       if (!vierge && comment && comment.value) qHtml += '<div class="q-comment">💬 ' + comment.value + '</div>';
       if (!vierge && annot && annot.value) qHtml += '<div class="q-comment" style="color:#7c2d8e">✦ ' + annot.value + '</div>';
+      // Praticien checkboxes
+      if (!vierge) {
+        card.querySelectorAll('input[id^=pctx_]').forEach(function(cb) {
+          if (cb.checked) {
+            var lbl = cb.parentElement ? cb.parentElement.textContent.trim() : '';
+            if (lbl) qHtml += '<div class="q-comment" style="color:#7c2d8e">☑ ' + lbl + '</div>';
+          }
+        });
+      }
       if (vierge) qHtml += '<div class="q-line"></div>';
       qHtml += '</div>';
       secContent += qHtml;
