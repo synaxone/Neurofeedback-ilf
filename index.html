@@ -3663,12 +3663,13 @@ function envoyerQuestionnaire() {
     return;
   }
 
-  // Show all sections temporarily to access all input values
+  // Show all sections AND sub-divs to access all values
   var allSections = document.querySelectorAll('.section');
   var hiddenSections = [];
   allSections.forEach(function(s) {
     if (s.style.display === 'none') { hiddenSections.push(s); s.style.display = 'block'; }
   });
+  var hiddenSubs = showAllSubDivs();
 
   var btn = document.querySelector('[onclick="envoyerQuestionnaire()"]');
   if (btn) { btn.textContent = '⏳ Envoi en cours…'; btn.disabled = true; }
@@ -3810,6 +3811,7 @@ function envoyerQuestionnaire() {
     to_email: emailDest
   }).then(function() {
     hiddenSections.forEach(function(s) { s.style.display = 'none'; });
+    restoreSubDivs(hiddenSubs);
     showConfirmation();
   }).catch(function(err) {
     // Fallback mailto
@@ -3817,6 +3819,7 @@ function envoyerQuestionnaire() {
     var body = encodeURIComponent(msg);
     window.location.href = 'mailto:' + emailDest + '?subject=' + subject + '&body=' + body;
     hiddenSections.forEach(function(s) { s.style.display = 'none'; });
+    restoreSubDivs(hiddenSubs);
     showConfirmation();
   });
 }
@@ -3841,41 +3844,59 @@ function showConfirmation() {
   setTimeout(() => goToSection(11), 2000);
 }
 
-function imprimerQuestionnaire() {
-  // First show all sections so inputs are accessible
-  var sections = document.querySelectorAll('.section');
+function showAllSubDivs() {
+  // Force show all hidden sub-divs inside question cards
   var hidden = [];
-  sections.forEach(function(s) {
-    if (s.style.display === 'none') { hidden.push(s); s.style.display = 'block'; }
+  document.querySelectorAll('.question-card [style*="display:none"], .question-card [style*="display: none"]').forEach(function(el) {
+    hidden.push({el: el, style: el.style.display});
+    el.style.display = 'block';
   });
-  // Wait for DOM to update then read values
+  return hidden;
+}
+
+function restoreSubDivs(hidden) {
+  hidden.forEach(function(item) { item.el.style.display = item.style; });
+}
+
+function imprimerQuestionnaire() {
+  var sections = document.querySelectorAll('.section');
+  var hiddenSecs = [];
+  sections.forEach(function(s) {
+    if (s.style.display === 'none') { hiddenSecs.push(s); s.style.display = 'block'; }
+  });
   setTimeout(function() {
-    var html = buildPrintHtml(false);
-    // Restore sections
-    hidden.forEach(function(s) { s.style.display = 'none'; });
-    var win = window.open('', '_blank');
-    win.document.write(html);
-    win.document.close();
-    win.focus();
-    setTimeout(function() { win.print(); }, 500);
+    var hiddenSubs = showAllSubDivs();
+    setTimeout(function() {
+      var html = buildPrintHtml(false);
+      restoreSubDivs(hiddenSubs);
+      hiddenSecs.forEach(function(s) { s.style.display = 'none'; });
+      var win = window.open('', '_blank');
+      win.document.write(html);
+      win.document.close();
+      win.focus();
+      setTimeout(function() { win.print(); }, 500);
+    }, 300);
   }, 800);
 }
 
 function imprimerVierge() {
-  // First show all sections so all questions are accessible
   var sections = document.querySelectorAll('.section');
-  var hidden = [];
+  var hiddenSecs = [];
   sections.forEach(function(s) {
-    if (s.style.display === 'none') { hidden.push(s); s.style.display = 'block'; }
+    if (s.style.display === 'none') { hiddenSecs.push(s); s.style.display = 'block'; }
   });
   setTimeout(function() {
-    var html = buildPrintHtml(true);
-    hidden.forEach(function(s) { s.style.display = 'none'; });
-    var win = window.open('', '_blank');
-    win.document.write(html);
-    win.document.close();
-    win.focus();
-    setTimeout(function() { win.print(); }, 500);
+    var hiddenSubs = showAllSubDivs();
+    setTimeout(function() {
+      var html = buildPrintHtml(true);
+      restoreSubDivs(hiddenSubs);
+      hiddenSecs.forEach(function(s) { s.style.display = 'none'; });
+      var win = window.open('', '_blank');
+      win.document.write(html);
+      win.document.close();
+      win.focus();
+      setTimeout(function() { win.print(); }, 500);
+    }, 300);
   }, 800);
 }
 
