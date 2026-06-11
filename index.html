@@ -807,8 +807,8 @@
 <!-- ===== SECTION 0 : PATIENT INFO ===== -->
 <div class="section" id="sec0">
   <div class="instructions">
-    <strong>Instructions :</strong> Pour chaque symptôme que vous ressentez, évaluez son intensité ou sa fréquence avec le curseur. Le sens est indiqué sous chaque curseur. Indiquez également <strong>depuis quand</strong> vous l'avez <strong>(si possible)</strong>, et ajoutez un commentaire si besoin.<br>
-    <strong>Si vous n'avez pas ce symptôme ou ne savez pas</strong>, laissez simplement la ligne vide.
+    <strong>Instructions :</strong> Pour chaque symptôme que vous ressentez, évaluez son intensité ou sa fréquence avec le curseur. Le sens est indiqué sous chaque curseur. Indiquez également <strong>depuis quand</strong> vous l&rsquo;avez <strong>(si possible)</strong>, et ajoutez un commentaire si besoin.<br>
+    <strong>Si vous n&rsquo;avez pas ce symptôme ou ne savez pas</strong>, laissez simplement la ligne vide.
   </div>
   <div class="section-title">
     <span class="section-num">1</span>
@@ -919,7 +919,7 @@
       </div>
       <div class="info-field">
         <label>Nombre d'enfants</label>
-        <input type="number" min="0" id="p_enfants">
+        <input type="number" min="0" step="1" id="p_enfants">
       </div>
     </div>
   </div>
@@ -938,7 +938,7 @@
         <textarea rows="3" placeholder="Décrivez…" id="p_mere"></textarea>
       </div>
       <div class="info-field full-width">
-        <label>Frères et sœurs (dans l'ordre chronologique)</label>
+        <label>Frères et sœurs (dans l&rsquo;ordre chronologique)</label>
         <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">Prénom · âge · profession · lieu de résidence · nature de la relation (complice, distante, cordiale…)</div>
         <textarea rows="4" placeholder="Décrivez…" id="p_fratrie"></textarea>
       </div>
@@ -3920,7 +3920,7 @@ function buildViergeHtml() {
     .info-note { font-size: 10px; color: #666; margin-bottom: 4px; font-style: italic; }
     .textarea-blank { border: 1px solid #ccc; min-height: 40px; margin: 4px 0 8px; border-radius: 3px; }
     .textarea-blank.large { min-height: 70px; }
-    @media print { body { margin: 10px; } }
+    .il{display:flex;align-items:center;gap:8px;margin:4px 0}.lbl{font-weight:bold;min-width:120px;font-size:11px}.bl{border-bottom:1px solid #999;flex:1;height:16px}.ta-bl{border:1px solid #ccc;min-height:35px;margin:3px 0 8px;border-radius:2px}.ta-bl.large{min-height:60px}.note{font-size:10px;color:#666;margin:1px 0 3px;font-style:italic}.ct{font-weight:bold;font-size:11px;margin:6px 0 2px;color:#3a2d8f;border-bottom:1px solid #3a2d8f}.st{background:#3a2d8f;color:white;padding:4px 8px;font-size:11px;font-weight:bold;margin:8px 0 3px;border-radius:4px}.q-label{font-size:9px;color:#666}.q-text{font-size:11px;font-weight:500;margin-bottom:2px}.q-line{border-bottom:1px solid #ddd;margin-top:3px;height:12px}.q{margin:3px 0;padding:3px 6px;border-left:1px solid #eee}.q-sub{margin-left:12px;font-size:10px;color:#444}    @media print { body { margin: 10px; } }
   </style>`;
 
   var allSections = [
@@ -3936,46 +3936,42 @@ function buildViergeHtml() {
     { title: 'Antécédents familiaux', questions: typeof familiauxQuestions !== 'undefined' ? familiauxQuestions : [] },
   ];
 
-  var body = '<h1>Questionnaire Neurofeedback ILF — Version vierge</h1>';
+  var body = '<h1>Questionnaire Neurofeedback ILF &mdash; Version vierge</h1>';
+  body += '<div class="st">1. Informations personnelles</div>';
+  body += '<div class="ct">Identit&eacute;</div>';
+  var vfields = ['Nom','Pr&eacute;nom','Date de naissance','&Acirc;ge','T&eacute;l&eacute;phone','Adresse mail','Ville','Si vous &ecirc;tes une femme, &ecirc;tes-vous enceinte ?','Main dominante'];
+  vfields.forEach(function(f){ body += '<div class="il"><span class="lbl">'+f+' :</span><span class="bl"></span></div>'; });
+  body += '<div class="il"><span class="lbl">Comment avez-vous connu le Neurofeedback ? :</span></div><div class="ta-bl"></div>';
 
-  // Info patient
-  body += '<div class="info-block">';
-  body += '<div class="info-line"><span class="info-label">Nom :</span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line"><span class="info-label">Prénom :</span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line"><span class="info-label">Date de naissance :</span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line"><span class="info-label">Âge :</span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line"><span class="info-label">Profession :</span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line"><span class="info-label">Email :</span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line"><span class="info-label">Téléphone :</span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line"><span class="info-label">Ville :</span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line"><span class="info-label">Main dominante :</span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line"><span class="info-label">Raison de consultation :</span><span class="info-line-blank"></span></div>';
-  body += '</div>';
+  body += '<div class="ct">Raison de la venue</div>';
+  body += '<p class="note">Merci de d&eacute;crire la raison de votre venue &mdash; vos &eacute;tats &eacute;motionnels, vos probl&egrave;mes de sant&eacute; actuels, vos probl&egrave;mes cognitifs (apprentissage, m&eacute;moire&hellip;), si vous avez une maladie diagnostiqu&eacute;e.</p>';
+  body += '<div class="ta-bl large"></div>';
 
-  // Contexte de vie
-  body += '<div class="section-title">Contexte de vie actuel</div>';
-  body += '<div class="info-block">';
-  body += '<div class="info-line"><span class="info-label">Situation familiale :</span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line"><span class="info-label">Nombre d&#39;enfants :</span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line"><span class="info-label">Situation professionnelle :</span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line"><span class="info-label">Nombre d&#39;heures de sommeil :</span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line"><span class="info-label">Activité physique :</span><span class="info-line-blank"></span></div>';
-  body += '</div>';
+  body += '<div class="ct">Contexte de vie actuel</div>';
+  var ctxf = ['Profession','Travaillez-vous actuellement ?','Situation familiale','Nombre d&#39;enfants'];
+  ctxf.forEach(function(f){ body += '<div class="il"><span class="lbl">'+f+' :</span><span class="bl"></span></div>'; });
 
-  // Relations familiales
-  body += '<div class="section-title">Relations familiales</div>';
-  body += '<div class="info-block">';
-  body += '<div class="info-line"><span class="info-label">Père :</span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line" style="margin-top:-4px"><span class="info-label"></span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line"><span class="info-label">Mère :</span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line" style="margin-top:-4px"><span class="info-label"></span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line"><span class="info-label">Frères/Sœurs :</span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line" style="margin-top:-4px"><span class="info-label"></span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line"><span class="info-label">Enfants :</span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line" style="margin-top:-4px"><span class="info-label"></span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line"><span class="info-label">Conjoint(e) :</span><span class="info-line-blank"></span></div>';
-  body += '<div class="info-line" style="margin-top:-4px"><span class="info-label"></span><span class="info-line-blank"></span></div>';
-  body += '</div>';
+  body += '<div class="ct">Relations familiales</div>';
+  body += '<div class="lbl">Relation avec vos parents &mdash; P&egrave;re</div>';
+  body += '<p class="note">Pr&eacute;nom &middot; &acirc;ge &middot; profession &middot; lieu de r&eacute;sidence &middot; nature de la relation (complice, distante, cordiale&hellip;)</p>';
+  body += '<div class="ta-bl"></div>';
+  body += '<div class="lbl">Relation avec vos parents &mdash; M&egrave;re</div>';
+  body += '<p class="note">Pr&eacute;nom &middot; &acirc;ge &middot; profession &middot; lieu de r&eacute;sidence &middot; nature de la relation</p>';
+  body += '<div class="ta-bl"></div>';
+  body += '<div class="lbl">Fr&egrave;res et s&oelig;urs (dans l&rsquo;ordre chronologique)</div>';
+  body += '<p class="note">Pr&eacute;nom &middot; &acirc;ge &middot; profession &middot; lieu de r&eacute;sidence &middot; nature de la relation</p>';
+  body += '<div class="ta-bl large"></div>';
+  body += '<div class="lbl">Relation avec vos enfants</div>';
+  body += '<p class="note">Pr&eacute;nom &middot; &acirc;ge &middot; vivent-ils avec vous ? &middot; nature de la relation</p>';
+  body += '<div class="ta-bl"></div>';
+  body += '<div class="lbl">Loisirs et passions (actuels et pass&eacute;s)</div>';
+  body += '<div class="ta-bl"></div>';
+  body += '<div class="lbl">&Eacute;v&eacute;nements importants de votre vie (chronologiquement, heureux ou difficiles)</div>';
+  body += '<p class="note">Si vous &ecirc;tes d&rsquo;accord, d&eacute;crivez quelques &eacute;v&eacute;nements marquants&hellip;</p>';
+  body += '<div class="ta-bl large"></div>';
+
+  body += '<div class="st" style="margin-top:12px">Instructions</div>';
+  body += '<p class="note" style="background:#f8f6ff;padding:6px;border-left:3px solid #3a2d8f">Pour chaque sympt&ocirc;me que vous ressentez, &eacute;valuez son intensit&eacute; ou sa fr&eacute;quence sur une &eacute;chelle de 0 &agrave; 10. Indiquez &eacute;galement <strong>depuis quand</strong> vous l&rsquo;avez <strong>(si possible)</strong>, et ajoutez un commentaire si besoin. <strong>Si vous n&rsquo;avez pas ce sympt&ocirc;me ou ne savez pas</strong>, laissez simplement la ligne vide.</p>';
 
   allSections.forEach(function(sec) {
     if (!sec.questions || sec.questions.length === 0) return;
@@ -4001,9 +3997,29 @@ function buildViergeHtml() {
 }
 
 function buildPrintHtml(vierge) {
-  var nom = (document.getElementById('p_prenom') ? document.getElementById('p_prenom').value : '') + ' ' + (document.getElementById('p_nom') ? document.getElementById('p_nom').value : '');
-  var css = '<style>body{font-family:Arial,sans-serif;font-size:11px;margin:20px}h1{font-size:14px;color:#3a2d8f;border-bottom:2px solid #3a2d8f;padding-bottom:6px}.st{background:#3a2d8f;color:white;padding:4px 8px;font-size:11px;font-weight:bold;margin:10px 0 4px;border-radius:4px}.q{margin:4px 0;padding:4px 8px;border-left:2px solid #3a2d8f;background:#f8f6ff}.qn{font-size:9px;color:#3a2d8f;font-weight:bold}.qt{font-size:10px;color:#555}.qv{font-size:12px;font-weight:bold;color:#3a2d8f}.qc{font-size:10px;color:#444;font-style:italic}.qp{font-size:10px;color:#7c2d8e;font-style:italic}@media print{body{margin:10px}}</style>';
+  function g(id) { var el = document.getElementById(id); return el ? (el.value || '') : ''; }
+  var nom = g('p_prenom') + ' ' + g('p_nom');
+  var css = '<style>body{font-family:Arial,sans-serif;font-size:11px;margin:20px}h1{font-size:14px;color:#3a2d8f;border-bottom:2px solid #3a2d8f;padding-bottom:6px}.st{background:#3a2d8f;color:white;padding:4px 8px;font-size:11px;font-weight:bold;margin:10px 0 4px;border-radius:4px}.ct{font-weight:bold;font-size:11px;margin:6px 0 3px;color:#3a2d8f}.f{margin:2px 0;font-size:11px}.fl{font-weight:bold;color:#555}.fv{color:#000;margin-left:4px}.ta{margin:2px 0;font-size:11px;white-space:pre-wrap}.q{margin:4px 0;padding:4px 8px;border-left:2px solid #3a2d8f;background:#f8f6ff}.qn{font-size:9px;color:#3a2d8f;font-weight:bold}.qt{font-size:10px;color:#555}.qv{font-size:12px;font-weight:bold;color:#3a2d8f}.qc{font-size:10px;color:#444;font-style:italic}.qp{font-size:10px;color:#7c2d8e;font-style:italic}@media print{body{margin:10px}}</style>';
   var body = '<h1>Questionnaire Neurofeedback ILF &mdash; ' + nom.trim() + '</h1>';
+
+  // ── Section infos personnelles ──
+  body += '<div class="st">Informations personnelles</div>';
+  body += '<div class="ct">Identit&eacute;</div>';
+  var id_fields = [['Nom',g('p_nom')],['Pr&eacute;nom',g('p_prenom')],['Date de naissance',g('p_ddn')],['&Acirc;ge',g('p_age')],['T&eacute;l&eacute;phone',g('p_tel')],['Email',g('p_email')],['Ville',g('p_ville')],['Enceinte',g('p_enceinte')],['Main dominante',g('p_main')],['Comment connu le NFB',g('p_source')]];
+  id_fields.forEach(function(f){ if(f[1]) body += '<div class="f"><span class="fl">'+f[0]+' :</span><span class="fv">'+f[1]+'</span></div>'; });
+
+  body += '<div class="ct">Raison de la venue</div>';
+  if(g('p_raison')) body += '<div class="ta">'+g('p_raison')+'</div>';
+
+  body += '<div class="ct">Contexte de vie</div>';
+  var ctx_fields = [['Profession',g('p_profession')],['Travail',g('p_travail')],['Situation familiale',g('p_situation')],['Nombre d&#39;enfants',g('p_enfants')]];
+  ctx_fields.forEach(function(f){ if(f[1]) body += '<div class="f"><span class="fl">'+f[0]+' :</span><span class="fv">'+f[1]+'</span></div>'; });
+
+  body += '<div class="ct">Relations familiales</div>';
+  var rel_fields = [['P&egrave;re',g('p_pere')],['M&egrave;re',g('p_mere')],['Fr&egrave;res/S&oelig;urs',g('p_fratrie')],['Enfants',g('p_rel_enfants')],['Loisirs',g('p_loisirs')],['&Eacute;v&eacute;nements importants',g('p_evenements')]];
+  rel_fields.forEach(function(f){ if(f[1]) body += '<div class="f"><span class="fl">'+f[0]+' :</span><br><div class="ta">'+f[1]+'</div></div>'; });
+
+  // ── Questions numérotées ──
 
   var allSecs = document.querySelectorAll('.section');
   allSecs.forEach(function(sec) {
