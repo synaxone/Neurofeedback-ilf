@@ -1160,6 +1160,48 @@
 // ===== EMAILJS CONFIG =====
 emailjs.init('Hqi0zbB2gdhQFzj3w');
 
+// ===== DATE DE NAISSANCE : FORMATAGE AUTOMATIQUE =====
+function formatDDN(input) {
+  var digits = input.value.replace(/\D/g, '').slice(0, 8);
+  var formatted = digits;
+  if (digits.length > 4) {
+    formatted = digits.slice(0, 2) + '/' + digits.slice(2, 4) + '/' + digits.slice(4);
+  } else if (digits.length > 2) {
+    formatted = digits.slice(0, 2) + '/' + digits.slice(2);
+  }
+  input.value = formatted;
+}
+
+// ===== CALCUL AUTOMATIQUE DE L'ÂGE =====
+function calcAgeSel() {
+  var ddnEl = document.getElementById('p_ddn');
+  var ageEl = document.getElementById('p_age');
+  if (!ddnEl || !ageEl) return;
+
+  var m = ddnEl.value.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) { ageEl.value = ''; return; }
+
+  var day = parseInt(m[1], 10);
+  var month = parseInt(m[2], 10) - 1;
+  var year = parseInt(m[3], 10);
+  var birth = new Date(year, month, day);
+
+  // Vérifie que la date est valide (ex : pas 31/02)
+  if (birth.getDate() !== day || birth.getMonth() !== month || birth.getFullYear() !== year) {
+    ageEl.value = '';
+    return;
+  }
+
+  var today = new Date();
+  var age = today.getFullYear() - birth.getFullYear();
+  var hasHadBirthdayThisYear = (today.getMonth() > birth.getMonth()) ||
+    (today.getMonth() === birth.getMonth() && today.getDate() >= birth.getDate());
+  if (!hasHadBirthdayThisYear) age--;
+
+  if (age < 0 || age > 130) { ageEl.value = ''; return; }
+  ageEl.value = age + ' ans';
+}
+
 // ===== DATA =====
 var sommeilQuestions = [
   { num: 2,  text: "Avez-vous un sommeil <strong>non</strong> récupérateur ?", rangeLabels: ["0 · très récupérateur", "5", "10 · pas récupérateur du tout"], noTooltip: true },
@@ -3920,7 +3962,7 @@ function buildViergeHtml() {
     .info-note { font-size: 10px; color: #666; margin-bottom: 4px; font-style: italic; }
     .textarea-blank { border: 1px solid #ccc; min-height: 40px; margin: 4px 0 8px; border-radius: 3px; }
     .textarea-blank.large { min-height: 70px; }
-    .il{display:flex;align-items:center;gap:8px;margin:4px 0}.lbl{font-weight:bold;min-width:120px;font-size:11px}.bl{border-bottom:1px solid #999;flex:1;height:16px}.ta-bl{border:1px solid #ccc;min-height:35px;margin:3px 0 8px;border-radius:2px}.ta-bl.large{min-height:60px}.note{font-size:10px;color:#666;margin:1px 0 3px;font-style:italic}.ct{font-weight:bold;font-size:11px;margin:6px 0 2px;color:#3a2d8f;border-bottom:1px solid #3a2d8f}.st{background:#3a2d8f;color:white;padding:4px 8px;font-size:11px;font-weight:bold;margin:8px 0 3px;border-radius:4px}.q-label{font-size:9px;color:#666}.q-text{font-size:11px;font-weight:500;margin-bottom:2px}.q-line{border-bottom:1px solid #ddd;margin-top:3px;height:12px}.q{margin:3px 0;padding:3px 6px;border-left:1px solid #eee}.q-sub{margin-left:12px;font-size:10px;color:#444}    @media print { body { margin: 10px; } }
+    .il{display:flex;align-items:center;gap:8px;margin:4px 0}.lbl{font-weight:bold;min-width:120px;font-size:11px}.bl{border-bottom:1px solid #999;flex:1;height:16px}.ta-bl{border:1px solid #ccc;min-height:35px;margin:3px 0 8px;border-radius:2px}.ta-bl.large{min-height:60px}.note{font-size:10px;color:#666;margin:1px 0 3px;font-style:italic}.ct{font-weight:bold;font-size:11px;margin:6px 0 2px;color:#3a2d8f;border-bottom:1px solid #3a2d8f}.st{background:#3a2d8f;color:white;padding:4px 8px;font-size:11px;font-weight:bold;margin:8px 0 3px;border-radius:4px}.q-label{font-size:9px;color:#666}.q-text{font-size:11px;font-weight:500;margin-bottom:2px}.q-line{border-bottom:1px solid #ddd;margin-top:3px;height:12px}.q{margin:3px 0;padding:3px 6px;border-left:1px solid #eee}.q-sub{margin-left:12px;font-size:10px;color:#444}.score-boxes{display:flex;align-items:center;gap:4px;margin-top:3px}.score-lbl{font-size:9px;color:#666;font-weight:bold}.score-box{display:inline-block;width:28px;height:16px;border:1px solid #999;border-radius:2px;margin-left:3px}    @media print { body { margin: 10px; } }
   </style>`;
 
   var allSections = [
@@ -3988,6 +4030,15 @@ function buildViergeHtml() {
           body += '<div class="q-sub">— ' + ctx + ' : <span class="q-sub-line" style="display:inline-block;width:150px;border-bottom:1px solid #ccc"></span></div>';
         });
       }
+      // Frequency/intensity boxes
+      body += '<div class="score-boxes">';
+      if (q.noIntensity) {
+        body += '<span class="score-lbl">R&eacute;ponse :</span><span class="score-box"></span>';
+      } else {
+        body += '<span class="score-lbl">Fr&eacute;quence :</span><span class="score-box"></span><span style="font-size:9px;color:#999">/10</span>';
+        body += '<span class="score-lbl" style="margin-left:12px">Intensit&eacute; :</span><span class="score-box"></span><span style="font-size:9px;color:#999">/10</span>';
+      }
+      body += '</div>';
       body += '<div class="q-line"></div>';
       body += '</div>';
     });
