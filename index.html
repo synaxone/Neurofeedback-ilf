@@ -783,7 +783,19 @@
   </div>
 </div>
 
-<!-- HEADER -->
+<!-- PANNEAU PRATICIEN : RECHARGER LES RÉPONSES D'UN PATIENT -->
+<div class="practitioner-only" style="background:#f7eef9;border-bottom:2px solid var(--practitioner);padding:12px 16px">
+  <div style="font-size:12px;font-weight:600;color:var(--practitioner);margin-bottom:6px">
+    ✦ Recharger les réponses d'un questionnaire déjà reçu
+  </div>
+  <textarea id="reload_textarea" rows="3" placeholder="Collez ici le contenu de l'email reçu (texte complet du questionnaire du patient)…"
+    style="width:100%;font-size:12px;padding:8px;border:1px solid var(--border);border-radius:8px;font-family:inherit;box-sizing:border-box"></textarea>
+  <button onclick="restoreFromText(document.getElementById('reload_textarea').value)"
+    style="margin-top:6px;padding:8px 14px;background:var(--practitioner);color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">
+    ⟲ Charger ces réponses dans le formulaire
+  </button>
+  <div id="reload_status" style="font-size:11px;margin-top:6px;color:var(--text-muted)"></div>
+</div>
 <div class="header" id="mainHeader">
   <h1>Questionnaire d'informations</h1>
   <p>Merci de bien vouloir remplir ce questionnaire et de le renvoyer <strong>au moins 2 à 3 jours avant votre première consultation</strong>.</p>
@@ -1221,6 +1233,122 @@ function calcAgeSel() {
   ageEl.value = age + ' ans';
 }
 
+// ===== RECHARGER LES RÉPONSES D'UN QUESTIONNAIRE DÉJÀ REÇU (mode praticien) =====
+function restoreFromText(text) {
+  var statusEl = document.getElementById('reload_status');
+  if (!text || !text.trim()) {
+    if (statusEl) statusEl.textContent = 'Collez le texte du questionnaire reçu avant de charger.';
+    return;
+  }
+
+  var headerMap = {
+    'Nom': 'p_nom', 'Prénom': 'p_prenom', 'Date de naissance': 'p_ddn',
+    'Âge': 'p_age', 'Téléphone': 'p_tel', 'Email': 'p_email',
+    'Ville': 'p_ville', 'Enceinte': 'p_enceinte', 'Main dominante': 'p_main',
+    'Comment connu le neurofeedback': 'p_source', 'Raison de la venue': 'p_raison',
+    'Profession': 'p_profession', 'Travail actuel': 'p_travail',
+    'Situation familiale': 'p_situation', 'Nombre enfants': 'p_enfants',
+    'pere': 'p_pere', 'mere': 'p_mere', 'fratrie': 'p_fratrie',
+    'rel enfants': 'p_rel_enfants', 'loisirs': 'p_loisirs', 'evenements': 'p_evenements'
+  };
+
+  var count = 0;
+  var lines = text.split('\n');
+
+  lines.forEach(function(rawLine) {
+    var line = rawLine.trim();
+    if (!line) return;
+
+    if (line.charAt(0) === 'Q') {
+      var spaceIdx = line.indexOf(' ');
+      if (spaceIdx === -1) return;
+      var qid = line.substring(1, spaceIdx);
+      if (!/^\d+$/.test(qid)) return;
+
+      var rest = line.substring(spaceIdx + 1).replace(/^[–—-] /, '');
+      var colonIdx = rest.lastIndexOf(' : ');
+      if (colonIdx === -1) return;
+      var rawLabel = rest.substring(0, colonIdx).trim();
+      var valStr = rest.substring(colonIdx + 3).trim();
+
+      // Commentaire libre
+      if (rawLabel.toLowerCase() === 'commentaire') {
+        var com = document.getElementById('com_' + qid);
+        if (com) {
+          com.value = valStr;
+          com.style.height = 'auto';
+          com.style.height = com.scrollHeight + 'px';
+          count++;
+        }
+        return;
+      }
+
+      var tagMatch = rawLabel.match(/\[(.*?)\]\s*$/);
+      var tag = tagMatch ? tagMatch[1].trim() : null;
+
+      // Curseur(s) (valeur du type "x/10")
+      var noteMatch = valStr.match(/^(\d+(?:\.\d+)?)\/10$/);
+      if (noteMatch) {
+        var val = noteMatch[1];
+        if (tag) {
+          // Question à double curseur : trouver _a ou _b selon le libellé (Fréquence/Intensité…)
+          ['a', 'b'].forEach(function(suffix) {
+            var inp = document.getElementById('range_' + qid + '_' + suffix);
+            if (!inp) return;
+            var group = inp.closest('.response-group');
+            var lbl = group ? group.querySelector('label') : null;
+            var lblText = lbl ? lbl.textContent.replace(/\(0–10\)/, '').trim() : '';
+            if (lblText === tag) {
+              inp.value = val;
+              updateIntensity(qid + '_' + suffix, val);
+              count++;
+            }
+          });
+        } else {
+          var inp2 = document.getElementById('range_' + qid);
+          if (inp2) {
+            inp2.value = val;
+            updateIntensity(qid, val);
+            count++;
+          }
+        }
+        return;
+      }
+
+      // Oui / Non : simule un clic sur le bon bouton pour conserver tous les effets (sous-questions, etc.)
+      if (valStr === 'oui' || valStr === 'non') {
+        document.querySelectorAll('button.yesno-btn').forEach(function(b) {
+          var oc = b.getAttribute('onclick') || '';
+          if (oc.indexOf("'yn_" + qid + "'") !== -1 && oc.indexOf("'" + valStr + "'") !== -1) {
+            b.click();
+            count++;
+          }
+        });
+        return;
+      }
+      return;
+    }
+
+    // Champs d'en-tête / informations personnelles
+    var colonIdx2 = line.indexOf(' : ');
+    if (colonIdx2 === -1) return;
+    var label2 = line.substring(0, colonIdx2).trim();
+    var value2 = line.substring(colonIdx2 + 3).trim();
+    var fieldId = headerMap[label2];
+    if (fieldId) {
+      var el = document.getElementById(fieldId);
+      if (el) {
+        el.value = value2;
+        if (fieldId === 'p_ddn') calcAgeSel();
+        count++;
+      }
+    }
+  });
+
+  updateAnswerHighlights();
+  if (statusEl) statusEl.textContent = '✓ ' + count + ' réponse(s) rechargée(s) dans le formulaire.';
+}
+
 // ===== DATA =====
 var sommeilQuestions = [
   { num: 2,  text: "Avez-vous un sommeil <strong>non</strong> récupérateur ?", rangeLabels: ["0 · très récupérateur", "5", "10 · pas récupérateur du tout"], noTooltip: true },
@@ -1383,12 +1511,12 @@ function goToSection(n) {
   var header = document.getElementById('mainHeader');
   if (header) header.style.display = n === 0 ? 'block' : 'none';
 
-  // Populate name on thank you page
-  if (n === 9) {
+  // Populate recap on "Envoyer" page
+  if (n === 10) {
     updateRecap();
   }
 
-  if (n === 10) {
+  if (n === 11) {
     var prenom10 = document.getElementById('p_prenom') ? document.getElementById('p_prenom').value : '';
     var nom10 = document.getElementById('p_nom') ? document.getElementById('p_nom').value : '';
     var merciNom = document.getElementById('merci_nom');
