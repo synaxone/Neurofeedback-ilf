@@ -1377,22 +1377,22 @@ function restoreFromText(text) {
 // ===== DATA =====
 var sommeilQuestions = [
   { num: 2,  text: "Avez-vous un sommeil <strong>non</strong> récupérateur ?", rangeLabels: ["0 · très récupérateur", "5", "10 · pas récupérateur du tout"], noTooltip: true },
-  { num: 3,  text: "Votre sommeil est-il agité ?", rangeLabels: ["0 · pas agité", "5", "10 · très agité"], pContexts: ["Problème émotionnel", "Pensées qui tournent (petit vélo)", "Si trauma"] },
-  { num: 4,  text: "Avez-vous des difficultés à vous endormir ?", special: "yesno_then_cursor", contexts: ["Je suis agité(e)", "J'ai des peurs ou de l'hypervigilance", "J'ai des pensées qui n'arrêtent pas"] },
-  { num: 5,  text: "Avez-vous des difficultés à vous réveiller le matin ?", rangeLabels: ["0 · pas de difficulté", "5", "10 · beaucoup de difficultés"], pContexts: ["Dépression", "Travail de nuit", "Si trauma"] },
-  { num: 6,  text: "Avez-vous des réveils fréquents la nuit ?", special: "reveils_yesno", pContexts: ["Problème émotionnel", "Pensées qui tournent (petit vélo)", "Si trauma"] },
-  { num: 7,  text: "Avez-vous un sommeil irrégulier à certaines périodes ?", pContexts: ["Problème émotionnel", "Si trauma"] },
-  { num: 8,  text: "Faites-vous des cauchemars ou des rêves très vivants ?", special: "q8_choices", pContexts: ["Si trauma"] },
-  { num: 9,  text: "Bougez-vous beaucoup les jambes dans votre sommeil ?", pContexts: ["Si trauma"] },
+  { num: 3,  text: "Votre sommeil est-il agité ?", rangeLabels: ["0 · pas agité", "5", "10 · très agité"], pContexts: ["Problème émotionnel", "Pensées qui tournent (petit vélo)", "Trauma"] },
+  { num: 4,  text: "Avez-vous des difficultés à vous endormir ?", special: "yesno_then_cursor", pContexts: ["Je suis agité(e)", "J'ai des peurs ou de l'hypervigilance", "J'ai des pensées qui n'arrêtent pas"] },
+  { num: 5,  text: "Avez-vous des difficultés à vous réveiller le matin ?", rangeLabels: ["0 · pas de difficulté", "5", "10 · beaucoup de difficultés"], pContexts: ["Dépression", "Travail de nuit", "Trauma"] },
+  { num: 6,  text: "Avez-vous des réveils fréquents la nuit ?", special: "reveils_yesno", pContexts: ["Problème émotionnel", "Pensées qui tournent (petit vélo)", "Trauma"] },
+  { num: 7,  text: "Avez-vous un sommeil irrégulier à certaines périodes ?", pContexts: ["Problème émotionnel", "Trauma"] },
+  { num: 8,  text: "Faites-vous des cauchemars ou des rêves très vivants ?", special: "q8_choices", pContexts: ["Trauma"] },
+  { num: 9,  text: "Bougez-vous beaucoup les jambes dans votre sommeil ?", pContexts: ["Trauma"] },
   { num: 10, text: "Souffrez-vous du syndrome des jambes sans repos ou « impatiences » ? (besoin irrépressible de bouger les jambes : douleurs, sensations désagréables, picotements, fourmillements, décharges électriques, spasmes…)", pContexts: ["Stress / fatigue / addictions", "Problème émotionnel / addictions"] },
-  { num: 11, text: "Avez-vous des terreurs nocturnes ?", pContexts: ["Si trauma"], note: "Les terreurs nocturnes sont des épisodes survenant généralement en début de nuit : la personne se redresse brusquement, crie, semble paniquée, les yeux ouverts, mais n'est pas réellement réveillée et n'en garde aucun souvenir le lendemain. Différentes des cauchemars, elles surviennent pendant le sommeil profond." },
+  { num: 11, text: "Avez-vous des terreurs nocturnes ?", pContexts: ["Trauma"], note: "Les terreurs nocturnes sont des épisodes survenant généralement en début de nuit : la personne se redresse brusquement, crie, semble paniquée, les yeux ouverts, mais n'est pas réellement réveillée et n'en garde aucun souvenir le lendemain. Différentes des cauchemars, elles surviennent pendant le sommeil profond." },
   { num: 12, text: "Avez-vous des sueurs nocturnes ?", special: "double_cursor", label1: "Fréquence", label2: "Intensité", range1: ["0 · jamais", "5", "10 · toutes les nuits"], range2: ["0 · légères", "5", "10 · très abondantes"] },
   { num: 13, text: "Avez-vous des apnées du sommeil (arrêts respiratoires) ?", special: "q13_apnee" },
   { num: 14, text: "Ronflez-vous ?", special: "double_cursor", label1: "Fréquence", label2: "Intensité", range1: ["0 · jamais", "5", "10 · toutes les nuits"], range2: ["0 · léger", "5", "10 · très fort"] },
-  { num: 15, text: "Parlez-vous pendant votre sommeil ?", rangeLabels: ["0 · jamais", "5", "10 · toutes les nuits"], pContexts: ["Si trauma"] },
-  { num: 16, text: "Grincez-vous des dents la nuit ? (bruxisme)", special: "double_cursor", label1: "Fréquence", label2: "Intensité", range1: ["0 · jamais", "5", "10 · toutes les nuits"], range2: ["0 · léger", "5", "10 · très intense"], pContexts: ["Si trauma"] },
-  { num: 17, text: "Êtes-vous somnambule ?", special: "double_cursor", label1: "Fréquence", label2: "Intensité", range1: ["0 · jamais", "5", "10 · toutes les nuits"], range2: ["0 · léger", "5", "10 · très intense"], pContexts: ["Si trauma"] },
-  { num: 18, text: "Avez-vous des problèmes d'énurésie ? (fuite d'urine la nuit, souvent liée au stress ou à l'anxiété)", pContexts: ["Si trauma"] },
+  { num: 15, text: "Parlez-vous pendant votre sommeil ?", rangeLabels: ["0 · jamais", "5", "10 · toutes les nuits"], pContexts: ["Trauma"] },
+  { num: 16, text: "Grincez-vous des dents la nuit ? (bruxisme)", special: "double_cursor", label1: "Fréquence", label2: "Intensité", range1: ["0 · jamais", "5", "10 · toutes les nuits"], range2: ["0 · léger", "5", "10 · très intense"], pContexts: ["Trauma"] },
+  { num: 17, text: "Êtes-vous somnambule ?", special: "double_cursor", label1: "Fréquence", label2: "Intensité", range1: ["0 · jamais", "5", "10 · toutes les nuits"], range2: ["0 · léger", "5", "10 · très intense"], pContexts: ["Trauma"] },
+  { num: 18, text: "Avez-vous des problèmes d'énurésie ? (fuite d'urine la nuit, souvent liée au stress ou à l'anxiété)", pContexts: ["Trauma"] },
   { num: 19, text: "Avez-vous d'autres problèmes de sommeil que ceux énoncés ? (précisez)" },
 ];
 
@@ -2164,11 +2164,10 @@ function buildQuestionCard(q) {
             </div>
           </div>
           </div>
-          ${q.contexts ? `<div style="margin-top:8px">
-            <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px">Cela correspond plutôt à (cochez ce qui s'applique) :</label>
-            ${q.contexts.map((c,i) => `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);margin-bottom:4px">
-              <input type="checkbox" id="ctx_${id}_${i}" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0">
-              <span style="font-size:12.5px">${c}</span>
+          ${q.pContexts ? `<div class="practitioner-only" style="margin-top:8px;padding:8px;background:var(--practitioner-light);border-radius:8px;border-left:3px solid var(--practitioner)">
+            <div style="font-size:10px;font-weight:600;color:var(--practitioner);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Précisions praticien</div>
+            ${q.pContexts.map((ctx, i) => `<label style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px;cursor:pointer">
+              <input type="checkbox" id="pctx_${id}_${i}" style="accent-color:var(--practitioner)"> ${ctx}
             </label>`).join('')}
           </div>` : ''}
         </div>
@@ -3372,7 +3371,7 @@ var comportementsQuestions = [
   { num: 78, text: "Êtes-vous plutôt désordonné(e) ?", rangeLabels: ["0 · très ordonné(e)", "5", "10 · très désordonné(e)"] },
   { num: 79, text: "Êtes-vous très attentif(ve) à votre hygiène ?", rangeLabels: ["0 · pas du tout", "5", "10 · très attentif(ve)"] },
   { num: 80, text: "Êtes-vous souvent méfiant(e) vis-à-vis des autres ?", rangeLabels: ["0 · pas du tout", "5", "10 · vraiment beaucoup"] },
-  { num: 81, text: "Avez-vous été diagnostiqué(e) autiste ou ayant des troubles du spectre autistique ?", noIntensity: true, pContexts: ["Expression émotionnelle", "Expression faciale / langage corporel", "Si trauma"] },
+  { num: 81, text: "Avez-vous été diagnostiqué(e) autiste ou ayant des troubles du spectre autistique ?", noIntensity: true, pContexts: ["Expression émotionnelle", "Expression faciale / langage corporel", "Trauma"] },
   { num: 82, text: "Avez-vous des troubles du stress post-traumatique ?", noIntensity: true, note: "Le trouble de stress post-traumatique (TSPT) est une réaction psychologique durable après un événement traumatisant. Symptômes : reviviscences (flashbacks, cauchemars), hypervigilance permanente, évitement de tout ce qui rappelle le traumatisme, réactions émotionnelles intenses ou engourdissement émotionnel, sentiment de danger constant, difficultés de concentration et de sommeil." },
   { num: 83, text: "Avez-vous été diagnostiqué(e) bipolaire ?", noIntensity: true },
   { num: 84, text: "Ressentez-vous des difficultés dans le domaine de la sexualité ?", rangeLabels: ["0 · pas du tout", "5", "10 · beaucoup"] },
@@ -4271,7 +4270,8 @@ function buildPrintHtml(vierge) {
         if (parseInt(inp.value) > 0) {
           var rg = inp.closest('.response-group');
           var lbl = rg && rg.querySelector('label') ? rg.querySelector('label').textContent.replace('(0–10)','').trim() : '';
-          lines.push((lbl ? lbl + ': ' : '') + inp.value + '/10');
+          if (lbl === '0 → 10') lbl = '';
+          lines.push((lbl ? lbl + ': ' : '') + inp.value);
         }
       });
       card.querySelectorAll('input[type=hidden]').forEach(function(inp) {
