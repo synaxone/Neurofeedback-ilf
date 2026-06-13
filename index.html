@@ -2163,6 +2163,13 @@ function buildQuestionCard(q) {
               <input class="field-input" type="text" placeholder="ex : 6 mois…" id="dep_${id}">
             </div>
           </div>
+          ${q.contexts ? `<div style="margin-top:8px">
+            <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px">Cela correspond plutôt à (cochez ce qui s'applique) :</label>
+            ${q.contexts.map((c,i) => `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);margin-bottom:4px">
+              <input type="checkbox" id="ctx_${id}_${i}" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0">
+              <span style="font-size:12.5px">${c}</span>
+            </label>`).join('')}
+          </div>` : ''}
         </div>
       </div>
       <div class="practitioner-annotation" id="annot_${id}">
@@ -3986,12 +3993,12 @@ function envoyerQuestionnaire() {
 
     if (cardLines.length > 0) {
       msg += cardLines.join('\n') + '\n';
-      // Comment
-      var comment = card.querySelector('textarea.field-input');
-      if (comment && comment.value) msg += qid + ' [commentaire] : ' + comment.value + '\n';
-      var depEl = card.querySelector('input[id^=dep_]');
-      if (depEl && depEl.value) msg += qid + ' [depuis] : ' + depEl.value + '\n';
     }
+    // Commentaire / réponse libre (toujours vérifié, même sans autre réponse — Q1, Q58, Q58b, Q112…)
+    var comment = card.querySelector('textarea.field-input');
+    if (comment && comment.value) msg += qid + ' [commentaire] : ' + comment.value + '\n';
+    var depEl = card.querySelector('input[id^=dep_]');
+    if (depEl && depEl.value) msg += qid + ' [depuis] : ' + depEl.value + '\n';
   });
 
   // Add praticien notes from annotations
