@@ -1109,7 +1109,7 @@
     <div style="padding:16px 20px;display:flex;gap:10px;align-items:flex-start">
       <input type="checkbox" id="consent_rgpd" style="margin-top:3px;width:18px;height:18px;flex-shrink:0;cursor:pointer">
       <label for="consent_rgpd" style="font-size:12.5px;line-height:1.6;cursor:pointer">
-        J'accepte explicitement que mes coordonnées et mes données de santé soient collectées et traitées dans le cadre de ce questionnaire. Conformément au RGPD, je dispose d'un droit d'accès et de suppression de mes données en contactant mon praticien.
+        J'accepte explicitement que mes coordonnées et mes données de santé soient collectées et traitées dans le cadre de ce questionnaire. Conformément au RGPD, je dispose d'un droit d'accès et de suppression de mes données en écrivant à : synaxone.nfb@gmail.com.
       </label>
     </div>
   </div>
@@ -1241,15 +1241,12 @@ function restoreFromText(text) {
     return;
   }
 
+  // Correspondance avec les libellés réellement utilisés à l'envoi (cf envoyerQuestionnaire)
   var headerMap = {
-    'Nom': 'p_nom', 'Prénom': 'p_prenom', 'Date de naissance': 'p_ddn',
-    'Âge': 'p_age', 'Téléphone': 'p_tel', 'Email': 'p_email',
-    'Ville': 'p_ville', 'Enceinte': 'p_enceinte', 'Main dominante': 'p_main',
-    'Comment connu le neurofeedback': 'p_source', 'Raison de la venue': 'p_raison',
-    'Profession': 'p_profession', 'Travail actuel': 'p_travail',
-    'Situation familiale': 'p_situation', 'Nombre enfants': 'p_enfants',
-    'pere': 'p_pere', 'mere': 'p_mere', 'fratrie': 'p_fratrie',
-    'rel enfants': 'p_rel_enfants', 'loisirs': 'p_loisirs', 'evenements': 'p_evenements'
+    'Nom': 'p_nom', 'Prénom': 'p_prenom', 'Code': 'p_code',
+    'Date naissance': 'p_ddn', 'Email': 'p_email', 'Téléphone': 'p_tel',
+    'Ville': 'p_ville', 'Main': 'p_main', 'Raison': 'p_raison'
+    // 'Age' volontairement omis : recalculé via calcAgeSel() à partir de la date de naissance
   };
 
   var count = 0;
@@ -1271,8 +1268,11 @@ function restoreFromText(text) {
       var rawLabel = rest.substring(0, colonIdx).trim();
       var valStr = rest.substring(colonIdx + 3).trim();
 
+      var tagMatch = rawLabel.match(/\[(.*?)\]\s*$/);
+      var tag = tagMatch ? tagMatch[1].trim() : null;
+
       // Commentaire libre
-      if (rawLabel.toLowerCase() === 'commentaire') {
+      if (tag === 'commentaire') {
         var com = document.getElementById('com_' + qid);
         if (com) {
           com.value = valStr;
@@ -1283,15 +1283,30 @@ function restoreFromText(text) {
         return;
       }
 
-      var tagMatch = rawLabel.match(/\[(.*?)\]\s*$/);
-      var tag = tagMatch ? tagMatch[1].trim() : null;
+      // "Depuis quand"
+      if (tag === 'depuis') {
+        var dep = document.getElementById('dep_' + qid);
+        if (dep) { dep.value = valStr; count++; }
+        return;
+      }
+
+      // Annotations / précisions praticien : pas restaurées automatiquement
+      if (tag === 'praticien' || tag === 'coché' || (tag && tag.indexOf('annotation') !== -1)) {
+        return;
+      }
 
       // Curseur(s) (valeur du type "x/10")
       var noteMatch = valStr.match(/^(\d+(?:\.\d+)?)\/10$/);
       if (noteMatch) {
         var val = noteMatch[1];
-        if (tag) {
-          // Question à double curseur : trouver _a ou _b selon le libellé (Fréquence/Intensité…)
+        var single = document.getElementById('range_' + qid);
+        if (single) {
+          // Curseur simple : on restaure peu importe le tag éventuel
+          single.value = val;
+          updateIntensity(qid, val);
+          count++;
+        } else if (tag) {
+          // Curseur double : trouver _a ou _b selon le libellé (Fréquence/Intensité…)
           ['a', 'b'].forEach(function(suffix) {
             var inp = document.getElementById('range_' + qid + '_' + suffix);
             if (!inp) return;
@@ -1304,13 +1319,6 @@ function restoreFromText(text) {
               count++;
             }
           });
-        } else {
-          var inp2 = document.getElementById('range_' + qid);
-          if (inp2) {
-            inp2.value = val;
-            updateIntensity(qid, val);
-            count++;
-          }
         }
         return;
       }
@@ -1326,6 +1334,22 @@ function restoreFromText(text) {
         });
         return;
       }
+
+      // Champ select (ex : [Enceinte] : Oui)
+      if (tag && valStr) {
+        var card = document.getElementById('qcard_' + qid);
+        var sel = card ? card.querySelector('select') : null;
+        if (sel) {
+          for (var i = 0; i < sel.options.length; i++) {
+            var opt = sel.options[i];
+            if (opt.value === valStr || opt.textContent.trim() === valStr) {
+              sel.value = opt.value;
+              count++;
+              break;
+            }
+          }
+        }
+      }
       return;
     }
 
@@ -1339,12 +1363,13 @@ function restoreFromText(text) {
       var el = document.getElementById(fieldId);
       if (el) {
         el.value = value2;
-        if (fieldId === 'p_ddn') calcAgeSel();
         count++;
       }
     }
   });
 
+  // Recalcule l'âge à partir de la date de naissance restaurée
+  calcAgeSel();
   updateAnswerHighlights();
   if (statusEl) statusEl.textContent = '✓ ' + count + ' réponse(s) rechargée(s) dans le formulaire.';
 }
