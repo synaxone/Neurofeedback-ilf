@@ -770,6 +770,29 @@
   </div>
 </div>
 
+<!-- PRATICIEN PASSWORD OVERLAY -->
+<div id="praticien-pwd-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:9999;display:none;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border-radius:16px;padding:32px 28px;max-width:340px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,0.2);text-align:center">
+    <div style="font-size:32px;margin-bottom:12px">🔐</div>
+    <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:400;color:var(--practitioner);margin-bottom:8px">Mode praticien</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;line-height:1.5">Entrez le mot de passe praticien.</p>
+    <input type="password" id="praticien-pwd-input" placeholder="Mot de passe"
+      style="width:100%;padding:12px 16px;border:1px solid var(--border);border-radius:8px;font-size:15px;font-family:'DM Sans',sans-serif;box-sizing:border-box;margin-bottom:12px;text-align:center;letter-spacing:0.05em"
+      onkeydown="if(event.key==='Enter') confirmPraticienPassword(); if(event.key==='Escape') closePraticienPasswordPrompt();">
+    <div id="praticien-pwd-error" style="color:#c0392b;font-size:12px;margin-bottom:8px;min-height:16px"></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closePraticienPasswordPrompt()"
+        style="flex:1;padding:12px;background:var(--bg);color:var(--text-muted);border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation">
+        Annuler
+      </button>
+      <button onclick="confirmPraticienPassword()"
+        style="flex:1;padding:12px;background:var(--practitioner);color:white;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;touch-action:manipulation">
+        Valider
+      </button>
+    </div>
+  </div>
+</div>
+
 
 <!-- MODE BANNER -->
 <div class="mode-banner" id="modeBanner">
@@ -1481,37 +1504,76 @@ function updateAnswerHighlights() {
 }
 
 function toggleMode() {
+  if (!isPraticien) {
+    // Ask for password to enter praticien mode via HTML overlay (prompt() est
+    // bloqué/silencieux sur certains navigateurs mobiles / webviews / PWA)
+    var screen = document.getElementById('praticien-pwd-screen');
+    var input = document.getElementById('praticien-pwd-input');
+    var error = document.getElementById('praticien-pwd-error');
+    if (error) error.textContent = '';
+    if (input) input.value = '';
+    if (screen) screen.style.display = 'flex';
+    if (input) setTimeout(function() { input.focus(); }, 50);
+  } else {
+    deactivatePraticienMode();
+  }
+}
+
+function activatePraticienMode() {
   var body = document.body;
   var pBtn = document.getElementById('modePatient');
   var rBtn = document.getElementById('modePraticien');
   var banner = document.getElementById('modeBanner');
 
-  if (!isPraticien) {
-    // Ask for password to enter praticien mode
-    var pwd = prompt('Mot de passe praticien :');
-    if (pwd !== 'nfbéàé-') {
-      alert('Mot de passe incorrect.');
-      return;
-    }
-    isPraticien = true;
-    body.classList.add('practitioner-mode');
-    pBtn.className = '';
-    rBtn.className = 'active-practitioner';
-    banner.style.borderBottom = '2px solid var(--practitioner)';
-    document.querySelectorAll('.practitioner-annotation').forEach(el => {
-      el.classList.add('visible');
-    });
-    updateAnswerHighlights();
-  } else {
-    isPraticien = false;
-    body.classList.remove('practitioner-mode');
-    pBtn.className = 'active-patient';
-    rBtn.className = '';
-    banner.style.borderBottom = '1px solid var(--border)';
-    document.querySelectorAll('.practitioner-annotation').forEach(el => {
-      el.classList.remove('visible');
-    });
+  isPraticien = true;
+  body.classList.add('practitioner-mode');
+  pBtn.className = '';
+  rBtn.className = 'active-practitioner';
+  banner.style.borderBottom = '2px solid var(--practitioner)';
+  document.querySelectorAll('.practitioner-annotation').forEach(el => {
+    el.classList.add('visible');
+  });
+  updateAnswerHighlights();
+}
+
+function deactivatePraticienMode() {
+  var body = document.body;
+  var pBtn = document.getElementById('modePatient');
+  var rBtn = document.getElementById('modePraticien');
+  var banner = document.getElementById('modeBanner');
+
+  isPraticien = false;
+  body.classList.remove('practitioner-mode');
+  pBtn.className = 'active-patient';
+  rBtn.className = '';
+  banner.style.borderBottom = '1px solid var(--border)';
+  document.querySelectorAll('.practitioner-annotation').forEach(el => {
+    el.classList.remove('visible');
+  });
+}
+
+function confirmPraticienPassword() {
+  var input = document.getElementById('praticien-pwd-input');
+  var error = document.getElementById('praticien-pwd-error');
+  var screen = document.getElementById('praticien-pwd-screen');
+  var val = input ? input.value : '';
+  if (val !== 'nfbéàé-') {
+    if (error) error.textContent = 'Mot de passe incorrect.';
+    if (input) { input.value = ''; input.focus(); }
+    return;
   }
+  if (screen) screen.style.display = 'none';
+  if (input) input.value = '';
+  activatePraticienMode();
+}
+
+function closePraticienPasswordPrompt() {
+  var screen = document.getElementById('praticien-pwd-screen');
+  var input = document.getElementById('praticien-pwd-input');
+  var error = document.getElementById('praticien-pwd-error');
+  if (screen) screen.style.display = 'none';
+  if (input) input.value = '';
+  if (error) error.textContent = '';
 }
 
 // ===== SECTIONS =====
@@ -1989,6 +2051,12 @@ function buildQuestionCard(q) {
               <input class="field-input" type="text" placeholder="ex : 6 mois…" id="dep_${id}">
             </div>
           </div>
+          ${q.pContexts ? `<div class="practitioner-only" style="margin-top:8px;padding:8px;background:var(--practitioner-light);border-radius:8px;border-left:3px solid var(--practitioner)">
+            <div style="font-size:10px;font-weight:600;color:var(--practitioner);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Précisions praticien</div>
+            ${q.pContexts.map((ctx, i) => `<label style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px;cursor:pointer">
+              <input type="checkbox" id="pctx_${id}_${i}" style="accent-color:var(--practitioner)"> ${ctx}
+            </label>`).join('')}
+          </div>` : ''}
         </div>
       </div>
       <div class="practitioner-annotation" id="annot_${id}">
@@ -3040,6 +3108,12 @@ function buildQuestionCard(q) {
             <label>Depuis quand ?</label>
             <input class="field-input" type="text" placeholder="si possible…" id="dep_${id}" style="background:white">
           </div>
+          ${q.pContexts ? `<div class="practitioner-only" style="margin-top:8px;padding:8px;background:var(--practitioner-light);border-radius:8px;border-left:3px solid var(--practitioner)">
+            <div style="font-size:10px;font-weight:600;color:var(--practitioner);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Précisions praticien</div>
+            ${q.pContexts.map((ctx, i) => `<label style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px;cursor:pointer">
+              <input type="checkbox" id="pctx_${id}_${i}" style="accent-color:var(--practitioner)"> ${ctx}
+            </label>`).join('')}
+          </div>` : ''}
         </div>
       </div>
       <div class="practitioner-annotation" id="annot_${id}"><label>Annotation praticien</label><textarea placeholder="Notes…"></textarea></div>
@@ -3461,7 +3535,7 @@ var physiqueQuestions = [
   { num: 139, text: "Transpirez-vous fréquemment ?", rangeLabels: ["0 · jamais", "5", "10 · très souvent"], commentPlaceholder: "Précisez le rythme si possible…" },
   { num: 140, text: "Avez-vous des incontinences émotionnelles ? (liées au stress)", special: "domaines_cursor", contexts: ["Urinaires", "Fécales"] },
   { num: 141, text: "Avez-vous des incontinences fonctionnelles ?", noIntensity: true, note: "L'incontinence fonctionnelle survient non pas à cause d'un problème physique de la vessie, mais parce que la personne n'arrive pas à atteindre les toilettes à temps — souvent liée à une mobilité réduite, un trouble cognitif ou une difficulté à reconnaître les signaux corporels." },
-  { num: 142, text: "Faites-vous de l'arythmie ou de la tachycardie ? (problème de rythme cardiaque — palpitations)", special: "q_medicament", pContexts: ["Problème physique", "Si émotionnel"] },
+  { num: 142, text: "Faites-vous de l'arythmie ou de la tachycardie ? (problème de rythme cardiaque — palpitations)", special: "q_medicament", pContexts: ["Si émotionnel"] },
   { num: 143, text: "Faites-vous de l'hypotension ou de l'hypertension ?", special: "q_medicament", pContexts: ["Si émotionnel"] },
   { num: 144, text: "Avez-vous des problèmes de thyroïde ? (hypo ou hyper)", special: "q_medicament", pContexts: ["Si émotionnel"] },
   { num: 145, text: "Avez-vous des problèmes hormonaux ?", special: "q_medicament", note: "Par exemple : problèmes de thyroïde, troubles des cycles menstruels, syndrome des ovaires polykystiques (SOPK), insuffisance surrénalienne, problèmes de cortisol (hormone du stress), troubles de la mélatonine (sommeil), déséquilibres oestrogènes/progestérone/testostérone…" },
