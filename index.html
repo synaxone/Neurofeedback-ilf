@@ -4387,7 +4387,45 @@ function buildPrintHtml(vierge) {
       var qtext = card.querySelector('.q-text');
       if (!qnum) return;
       var lines = [];
+      // ── Cases à cocher accompagnées d'un détail (curseur d'intensité, texte libre,
+      // quantité/fréquence…) dans le même bloc : on combine en une seule ligne
+      // "Libellé — détail1, détail2" pour garder le lien entre la réponse et sa précision
+      // (concerne Q20, Q28, Q47, Q54-56, Q68, Q69…).
+      var consumed = [];
+      card.querySelectorAll('input[type=checkbox]:not([id^=pctx_])').forEach(function(cb) {
+        var wrapper = cb.closest('div');
+        if (!wrapper) return;
+        var detailInputs = [];
+        wrapper.querySelectorAll('input[type=range], input[type=text], input[type=number], textarea').forEach(function(inp) {
+          if (inp === cb) return;
+          if (inp.id && inp.id.indexOf('dep_') === 0) return; // "depuis quand" global, géré séparément
+          detailInputs.push(inp);
+        });
+        if (detailInputs.length === 0) return; // case simple, traitée plus bas
+        detailInputs.forEach(function(inp) { consumed.push(inp); });
+        consumed.push(cb);
+        if (!cb.checked) return;
+        var lblEl = cb.closest('label');
+        var span = (lblEl && lblEl.querySelector('span > span')) || (lblEl ? lblEl.querySelector('span') : null);
+        var name = span ? span.textContent.trim() : (lblEl ? lblEl.textContent.trim() : '');
+        var parts = [];
+        detailInputs.forEach(function(inp) {
+          if (inp.tagName === 'TEXTAREA') {
+            if (inp.value) parts.push(inp.value);
+          } else if (inp.type === 'range') {
+            if (parseInt(inp.value) > 0) parts.push(inp.value + '/10');
+          } else if (inp.value) {
+            var rg = inp.closest('.response-group');
+            var lbl2 = rg && rg.querySelector('label') ? rg.querySelector('label').textContent.trim() : '';
+            parts.push((lbl2 ? lbl2 + ': ' : '') + inp.value);
+          }
+        });
+        lines.push(name + (parts.length ? ' — ' + parts.join(', ') : ''));
+      });
+      function isConsumed(el) { return consumed.indexOf(el) !== -1; }
+
       card.querySelectorAll('input[type=range]').forEach(function(inp) {
+        if (isConsumed(inp)) return;
         if (parseInt(inp.value) > 0) {
           var rg = inp.closest('.response-group');
           var lbl = rg && rg.querySelector('label') ? rg.querySelector('label').textContent.replace('(0–10)','').trim() : '';
@@ -4398,44 +4436,25 @@ function buildPrintHtml(vierge) {
       card.querySelectorAll('input[type=hidden]').forEach(function(inp) {
         if (inp.value) lines.push(inp.value);
       });
-      card.querySelectorAll('input[type=number],input[type=text]:not([id^=dep_]):not([id^=addqty_]):not([id^=adddep_])').forEach(function(inp) {
+      card.querySelectorAll('input[type=number],input[type=text]:not([id^=dep_])').forEach(function(inp) {
+        if (isConsumed(inp)) return;
         if (inp.value && !inp.readOnly) {
           var rg = inp.closest('.response-group');
           var lbl = rg && rg.querySelector('label') ? rg.querySelector('label').textContent.trim() : '';
           lines.push((lbl ? lbl + ': ' : '') + inp.value);
         }
       });
-      card.querySelectorAll('input[type=checkbox]:not([id^=pctx_]):not([id^=chkadd_])').forEach(function(cb) {
+      card.querySelectorAll('input[type=checkbox]:not([id^=pctx_])').forEach(function(cb) {
+        if (isConsumed(cb)) return;
         if (cb.checked) { var lbl = cb.closest('label'); if (lbl) lines.push(lbl.textContent.trim()); }
-      });
-      // Addictions (Q69) : associer chaque addiction cochée à sa quantité/fréquence
-      // et "depuis quand", au lieu de lister les valeurs séparément sans lien.
-      card.querySelectorAll('input[id^=chkadd_]').forEach(function(cb) {
-        if (!cb.checked) return;
-        var lblEl = cb.closest('label');
-        var span = lblEl ? lblEl.querySelector('span') : null;
-        var name = span ? span.textContent.trim() : (lblEl ? lblEl.textContent.trim() : '');
-        var outerDiv = cb.closest('div');
-        var detail = outerDiv ? outerDiv.querySelector('[id^=adddtl_]') : null;
-        var parts = [name];
-        if (detail) {
-          var qty = detail.querySelector('input[id^=addqty_]');
-          var dep2 = detail.querySelector('input[id^=adddep_]');
-          var precis = detail.querySelector('input[type=text]:not([id^=addqty_]):not([id^=adddep_])');
-          if (precis && precis.value) parts[0] = name + ' (' + precis.value + ')';
-          if (qty && qty.value) {
-            var rgQty = qty.closest('.response-group');
-            var unit = rgQty && rgQty.querySelector('label') ? rgQty.querySelector('label').textContent.trim() : '';
-            parts.push(qty.value + (unit ? ' ' + unit : ''));
-          }
-          if (dep2 && dep2.value) parts.push('depuis ' + dep2.value);
-        }
-        lines.push(parts.join(' — '));
       });
       card.querySelectorAll('select').forEach(function(sel) {
         if (sel.value) lines.push(sel.value);
       });
-      var comment = card.querySelector('textarea.field-input');
+      var comment = null;
+      card.querySelectorAll('textarea.field-input').forEach(function(ta) {
+        if (!comment && !isConsumed(ta)) comment = ta;
+      });
       var dep = card.querySelector('input[id^=dep_]');
       var annot = card.querySelector('.practitioner-annotation textarea');
       var pctxChecked = [];
