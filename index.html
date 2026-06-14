@@ -1121,9 +1121,9 @@
   <div class="patient-info-card" style="margin-top:16px">
     <div class="card-header">Adresse email du praticien</div>
     <div style="padding:16px 20px">
-      <input class="field-input" type="email" id="praticien_email"
-        placeholder="email@praticien.com" value="synaxone.nfb@gmail.com"
-        style="width:100%;font-size:15px;padding:10px 12px;border:1px solid var(--border);border-radius:8px">
+      <input class="field-input" type="email" id="praticien_email" readonly
+        value="synaxone.nfb@gmail.com"
+        style="width:100%;font-size:15px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:#f5f5f5;color:#666">
       <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Le questionnaire sera envoyé à cette adresse.</div>
     </div>
   </div>
@@ -1677,10 +1677,10 @@ var cognitionQuestions = [
   { num: 25, text: "Avez-vous des difficultés à planifier des tâches, à vous organiser ?", special: "domaines_cursor", contexts: ["Au travail","À la maison"], contextLabels: ["0 · aucune difficulté", "5", "10 · beaucoup de difficultés"] },
   { num: 26, text: "Avez-vous des difficultés à terminer des tâches ?", rangeLabels: ["0 · aucune difficulté", "5", "10 · beaucoup de difficultés"] },
   { num: 27, text: "Avez-vous des difficultés à suivre une conversation ou à participer à une discussion ?", special: "domaines_cursor", contexts: ["En tête-à-tête","En groupe / réunion","En famille"], contextLabels: ["0 · aucune difficulté", "5", "10 · beaucoup de difficultés"], pContexts: ["Expression verbale"] },
-  { num: 28, text: "Avez-vous des difficultés à...", special: "q28_multi", pContexts: ["Compréhension du langage"] },
+  { num: 28, text: "Avez-vous des difficultés à...", special: "q28_multi", pContexts: ["Compréhension du langage", "Contrôle des impulsions, attention vers un objectif"] },
   { num: 29, text: "Avez-vous tendance à procrastiner ? (remettre des tâches à plus tard…)", rangeLabels: ["0 · ne procrastine pas du tout", "5", "10 · procrastine tout le temps"] },
   { num: 30, text: "Avez-vous des difficultés à prendre des décisions ?", special: "domaines_cursor", contexts: ["Affectif","Personnel","Professionnel"], contextLabels: ["0 · aucune difficulté", "5", "10 · beaucoup de difficultés"] },
-  { num: 31, text: "Avez-vous des difficultés à articuler ?", rangeLabels: ["0 · pas du tout", "5", "10 · grande difficulté"], pContexts: ["Expression verbale / choix des mots", "Langage précoce"] },
+  { num: 31, text: "Avez-vous des difficultés à articuler ?", rangeLabels: ["0 · pas du tout", "5", "10 · grande difficulté"], pContexts: ["Expression verbale / choix des mots", "Langage précoce", "Émotionnel"] },
   { num: "31b", text: "Avez-vous des difficultés à trouver des mots communs ?", rangeLabels: ["0 · pas du tout", "5", "10 · grande difficulté"] },
   { num: "31c", text: "Bégayez-vous ?", rangeLabels: ["0 · pas du tout", "5", "10 · beaucoup"] },
   { num: 32, text: "Avez-vous des difficultés à vous rappeler des noms et des prénoms ?", rangeLabels: ["0 · pas du tout", "5", "10 · grande difficulté"] },
@@ -4028,11 +4028,14 @@ function envoyerQuestionnaire() {
   var btn = document.querySelector('[onclick="envoyerQuestionnaire()"]');
   if (btn) { btn.textContent = '⏳ Envoi en cours…'; btn.disabled = true; }
 
-  // Safety: always re-enable after 5s
+  // Sécurité : si l'envoi n'a abouti (ni succès ni erreur) après un long délai,
+  // on réactive le bouton. Le traitement côté Apps Script (génération du plan)
+  // peut prendre plusieurs dizaines de secondes ; un délai trop court (ex. 5s)
+  // réactivait le bouton trop tôt et permettait un double-clic → 2 plans identiques.
   setTimeout(function() {
     var b = document.querySelector('[onclick="envoyerQuestionnaire()"]');
-    if (b && b.disabled) { b.disabled = false; b.textContent = '✉ Envoyer'; }
-  }, 5000);
+    if (b && b.disabled && !_envoiValide) { b.disabled = false; b.textContent = '✉ Envoyer'; }
+  }, 90000);
 
   // Build simple message
   var nom = '';
@@ -4152,9 +4155,13 @@ function envoyerQuestionnaire() {
   // Envoi direct à votre Apps Script : traitement immédiat, aucun service tiers.
   // Mode 'no-cors' : compatible Safari/iPhone, on n'attend pas de réponse lisible
   // (le déclencheur Gmail toutes les 5 min reste en filet de sécurité).
+  // SUBMIT_TOKEN : doit correspondre à la valeur attendue côté Apps Script (doPost),
+  // pour qu'une requête envoyée directement à l'URL /exec (hors formulaire) soit rejetée.
+  var SUBMIT_TOKEN = "synaxone-nfb-7f3kQ2";
   var formData = new FormData();
   formData.append('body', msg);
   formData.append('praticien_email', email);
+  formData.append('token', SUBMIT_TOKEN);
 
   fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: formData })
     .then(function() {
