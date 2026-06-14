@@ -1313,8 +1313,35 @@ function restoreFromText(text) {
         return;
       }
 
-      // Annotations / précisions praticien : pas restaurées automatiquement
-      if (tag === 'praticien' || tag === 'coché' || (tag && tag.indexOf('annotation') !== -1)) {
+      // Cases cochées (patient [coché] ou praticien [praticien]) : on cherche, dans la
+      // fiche de la question, une case dont le libellé correspond au texte enregistré.
+      if (tag === 'coché' || tag === 'praticien') {
+        var card2 = document.getElementById('qcard_' + qid);
+        if (card2 && valStr) {
+          var target = valStr.trim().toLowerCase();
+          var checkboxes = card2.querySelectorAll('input[type=checkbox]');
+          for (var ci = 0; ci < checkboxes.length; ci++) {
+            var cb = checkboxes[ci];
+            var lblTxt = cb.parentElement ? cb.parentElement.textContent.trim().toLowerCase() : '';
+            if (lblTxt === target || lblTxt.indexOf(target) !== -1 || target.indexOf(lblTxt) !== -1) {
+              if (!cb.checked) {
+                cb.checked = true;
+                if (cb.onchange) cb.onchange();
+                cb.dispatchEvent(new Event('change'));
+              }
+              count++;
+              break;
+            }
+          }
+        }
+        return;
+      }
+
+      // Annotations praticien (texte libre)
+      if (tag && tag.indexOf('annotation') !== -1) {
+        var card3 = document.getElementById('qcard_' + qid);
+        var annotTa = card3 ? card3.querySelector('.practitioner-annotation textarea') : null;
+        if (annotTa) { annotTa.value = valStr; count++; }
         return;
       }
 
