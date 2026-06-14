@@ -4353,6 +4353,14 @@ function buildViergeHtml() {
 
 function buildPrintHtml(vierge) {
   function g(id) { var el = document.getElementById(id); return el ? (el.value || '') : ''; }
+  // Raccourcit un libellé long du type "Introverti(e) — je me ressource seul(e)…"
+  // ou "Déficit visuel (vue basse, flou…)" en ne gardant que le mot/groupe avant
+  // la première parenthèse ou le premier tiret long.
+  function shortLabel(text) {
+    if (!text) return text;
+    var cut = text.split(/[—(]/)[0].trim();
+    return cut || text.trim();
+  }
   var nom = g('p_prenom') + ' ' + g('p_nom');
   var css = '<style>body{font-family:Arial,sans-serif;font-size:11px;margin:20px}h1{font-size:14px;color:#3a2d8f;border-bottom:2px solid #3a2d8f;padding-bottom:6px}.st{background:#3a2d8f;color:white;padding:4px 8px;font-size:11px;font-weight:bold;margin:10px 0 4px;border-radius:4px}.ct{font-weight:bold;font-size:11px;margin:6px 0 3px;color:#3a2d8f}.f{margin:2px 0;font-size:11px}.fl{font-weight:bold;color:#555}.fv{color:#000;margin-left:4px}.ta{margin:2px 0;font-size:11px;white-space:pre-wrap}.q{margin:4px 0;padding:4px 8px;border-left:2px solid #3a2d8f;background:#f8f6ff}.qn{font-size:9px;color:#3a2d8f;font-weight:bold}.qt{font-size:10px;color:#555}.qv{font-size:12px;font-weight:bold;color:#3a2d8f}.qc{font-size:10px;color:#444;font-style:italic}.qp{font-size:10px;color:#7c2d8e;font-style:italic}@media print{body{margin:10px}}</style>';
   var body = '<h1>Questionnaire Neurofeedback ILF &mdash; ' + nom.trim() + '</h1>';
@@ -4408,12 +4416,13 @@ function buildPrintHtml(vierge) {
         var lblEl = cb.closest('label');
         var span = (lblEl && lblEl.querySelector('span > span')) || (lblEl ? lblEl.querySelector('span') : null);
         var name = span ? span.textContent.trim() : (lblEl ? lblEl.textContent.trim() : '');
+        name = shortLabel(name);
         var parts = [];
         detailInputs.forEach(function(inp) {
           if (inp.tagName === 'TEXTAREA') {
             if (inp.value) parts.push(inp.value);
           } else if (inp.type === 'range') {
-            if (parseInt(inp.value) > 0) parts.push(inp.value + '/10');
+            if (parseInt(inp.value) > 0) parts.push(inp.value);
           } else if (inp.value) {
             var rg = inp.closest('.response-group');
             var lbl2 = rg && rg.querySelector('label') ? rg.querySelector('label').textContent.trim() : '';
@@ -4446,7 +4455,7 @@ function buildPrintHtml(vierge) {
       });
       card.querySelectorAll('input[type=checkbox]:not([id^=pctx_])').forEach(function(cb) {
         if (isConsumed(cb)) return;
-        if (cb.checked) { var lbl = cb.closest('label'); if (lbl) lines.push(lbl.textContent.trim()); }
+        if (cb.checked) { var lbl = cb.closest('label'); if (lbl) lines.push(shortLabel(lbl.textContent.trim())); }
       });
       card.querySelectorAll('select').forEach(function(sel) {
         if (sel.value) lines.push(sel.value);
