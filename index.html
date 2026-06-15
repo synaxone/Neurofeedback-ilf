@@ -1442,7 +1442,7 @@ var sommeilQuestions = [
   { num: 15, text: "Parlez-vous pendant votre sommeil ?", rangeLabels: ["0 · jamais", "5", "10 · toutes les nuits"] },
   { num: 16, text: "Grincez-vous des dents la nuit ? (bruxisme)", special: "double_cursor", label1: "Fréquence", label2: "Intensité", range1: ["0 · jamais", "5", "10 · toutes les nuits"], range2: ["0 · léger", "5", "10 · très intense"] },
   { num: 17, text: "Êtes-vous somnambule ?", special: "double_cursor", label1: "Fréquence", label2: "Intensité", range1: ["0 · jamais", "5", "10 · toutes les nuits"], range2: ["0 · léger", "5", "10 · très intense"] },
-  { num: 18, text: "Avez-vous des problèmes d'énurésie ? (fuite d'urine la nuit, souvent liée au stress ou à l'anxiété)" },
+  { num: 18, text: "Avez-vous des problèmes d'énurésie ? (fuite d'urine la nuit, souvent liée au stress ou à l'anxiété)", pContexts: ["Enfant de plus de 8 ans"] },
   { num: 19, text: "Avez-vous d'autres problèmes de sommeil que ceux énoncés ? (précisez)" },
 ];
 
@@ -1683,14 +1683,20 @@ var cognitionQuestions = [
   { num: 31, text: "Avez-vous des difficultés à articuler ?", rangeLabels: ["0 · pas du tout", "5", "10 · grande difficulté"], pContexts: ["Expression verbale / choix des mots", "Langage précoce", "Émotionnel"] },
   { num: "31b", text: "Avez-vous des difficultés à trouver des mots communs ?", rangeLabels: ["0 · pas du tout", "5", "10 · grande difficulté"] },
   { num: "31c", text: "Bégayez-vous ?", rangeLabels: ["0 · pas du tout", "5", "10 · beaucoup"] },
-  { num: 32, text: "Avez-vous des difficultés à vous rappeler des noms et des prénoms ?", rangeLabels: ["0 · pas du tout", "5", "10 · grande difficulté"] },
+  { num: 32, text: "Avez-vous des difficultés à vous rappeler des noms et des prénoms ?", rangeLabels: ["0 · pas du tout", "5", "10 · grande difficulté"], pContexts: ["Alzheimer"] },
   { num: 33, text: "Avez-vous des problèmes de mémoire à court terme ?", rangeLabels: ["0", "5", "10"] },
   { num: 34, text: "Avez-vous des problèmes de mémoire à long terme ? (pas ou peu de souvenirs anciens)", rangeLabels: ["0", "5", "10"] },
   { num: 35, text: "Avez-vous des difficultés à assimiler de nouvelles connaissances ?", special: "domaines_cursor", contexts: ["Lecture / compréhension","Mémorisation","Mise en pratique","Concentration"], contextLabels: ["0 · aucune difficulté", "5", "10 · beaucoup de difficultés"] },
   { num: 36, text: "Êtes-vous facilement démotivé(e) dans l'apprentissage ?", rangeLabels: ["0 · jamais démotivé(e)", "5", "10 · très démotivé(e)"] },
   { num: 37, text: "Êtes-vous diagnostiqué(e) HPI (Haut Potentiel Intellectuel) ?", noIntensity: true },
   { num: 38, text: "Êtes-vous diagnostiqué(e) HPE (Haut Potentiel Émotionnel) ?", noIntensity: true, note: "Sensibilité émotionnelle très intense, grande empathie, émotions vécues de façon amplifiée." },
-  { num: 39, text: "Avez-vous des problèmes dys ? (dyslexie, dysorthographie, dyscalculie, dysphasie, dyspraxie, dysgraphie)", noIntensity: true },
+  { num: 39, text: "Avez-vous des problèmes dys ? (dyslexie, dysorthographie, dyscalculie, dysphasie, dyspraxie, dysgraphie)", noIntensity: true, pContexts: [
+    "Dyslexie / Dysphasie",
+    "Dyslexie — décodage des mots / fluidité du langage, planification et organisation de la pensée",
+    "Dyspraxie / Dysgraphie — coordination motrice fine, planification des mouvements, intégration visuo-spatiale",
+    "Dyscalculie",
+    "Associé à TDAH — fonction exécutive, mémoire de travail et concentration pour lecture et calcul"
+  ] },
   { num: 40, text: "Avez-vous d'autres éléments à ajouter concernant vos difficultés cognitives ou d'apprentissage ?", rangeLabels: ["0 · aucune difficulté", "5", "10 · beaucoup de difficultés"] },
 ];
 
@@ -2608,6 +2614,12 @@ function buildQuestionCard(q) {
             <textarea class="field-input" placeholder="Précisez lesquels…" rows="2" id="medoc_text_${id}" style="background:white;width:100%" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
           </div>
         </div>
+        ${(q.pContexts && q.pContexts.length) ? `<div class="practitioner-only" style="margin-top:8px;padding:8px;background:var(--practitioner-light);border-radius:8px;border-left:3px solid var(--practitioner)">
+          <div style="font-size:10px;font-weight:600;color:var(--practitioner);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Précisions praticien</div>
+          ${q.pContexts.map((ctx, i) => `<label style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px;cursor:pointer">
+            <input type="checkbox" id="pctx_${id}_${i}" style="accent-color:var(--practitioner)"> ${ctx}
+          </label>`).join('')}
+        </div>` : ''}
       </div>
       <div class="practitioner-annotation" id="annot_${id}">
         <label>Annotation praticien</label>
@@ -3471,11 +3483,12 @@ var comportementsQuestions = [
   { num: 58, text: "Quand vous êtes stressé(e), comment cela se manifeste-t-il chez vous ?", special: "libre", note: "Par exemple : tensions dans la nuque ou les épaules, mâchoires serrées, estomac noué, maux de tête, palpitations, respiration courte, transpiration, fatigue soudaine, douleurs dans le dos, troubles digestifs, agitation, insomnie, envie de pleurer…" },
   { num: "58b", text: "Comment se manifeste chez vous la détente ?", special: "libre", note: "Par exemple : muscles qui se relâchent, sensation de chaleur dans le corps, respiration qui ralentit, bâillements, larmes de soulagement, envie de dormir, légèreté mentale, relâchement émotionnel, sentiment de sécurité, ralentissement des pensées, douceur dans le regard, envie de sourire, silence intérieur…" },
   { num: 59, text: "Avez-vous des difficultés à vous affirmer ?", rangeLabels: ["0 · aucune difficulté", "5", "10 · beaucoup de difficultés"] },
+  { num: "59b", text: "Avez-vous du mal à vous ouvrir aux autres ?", rangeLabels: ["0 · pas du tout", "5", "10 · beaucoup"] },
   { num: 60, text: "Avez-vous le sens de l'humour ?", rangeLabels: ["0 · pas du tout", "5", "10 · beaucoup"] },
+  { num: "60b", text: "Faites-vous ou faisiez-vous le clown en classe, enfant ?", noIntensity: true },
   { num: 61, text: "Parlez-vous beaucoup ?", rangeLabels: ["0 · pas du tout", "5", "10 · beaucoup"] },
-  { num: 62, text: "Faites-vous ou faisiez-vous le clown en classe, enfant ?", noIntensity: true },
   { num: 63, text: "Avez-vous tendance à être impulsif(ve) ?", rangeLabels: ["0 · pas du tout", "5", "10 · vraiment beaucoup"], note: "L'impulsivité est la tendance à agir sans réfléchir, sous l'effet d'une émotion ou d'une envie immédiate, sans anticiper les conséquences — par exemple couper la parole, acheter impulsivement, réagir violemment puis regretter." },
-  { num: 64, text: "Avez-vous parfois des comportements compulsifs ?", rangeLabels: ["0 · jamais", "5", "10 · très souvent"], note: "Un comportement compulsif est un acte répété de manière irrésistible pour réduire une anxiété ou une tension intérieure — vérifier plusieurs fois la porte, se laver les mains en boucle, ranger de façon obsessionnelle — même quand on sait que c'est irrationnel." },
+  { num: 64, text: "Avez-vous parfois des comportements compulsifs ?", rangeLabels: ["0 · jamais", "5", "10 · très souvent"], note: "Un comportement compulsif est un acte répété de manière irrésistible pour réduire une anxiété ou une tension intérieure — vérifier plusieurs fois la porte, se laver les mains en boucle, ranger de façon obsessionnelle — même quand on sait que c'est irrationnel.", pContexts: ["Lié à une pensée obsessionnelle"] },
   { num: 65, text: "Êtes-vous souvent dans l'opposition aux autres ?", rangeLabels: ["0 · jamais", "5", "10 · très souvent"] },
   { num: 66, text: "Êtes-vous parfois agressif(ve) envers les autres ?", rangeLabels: ["0 · jamais", "5", "10 · très souvent"] },
   { num: 67, text: "Avez-vous parfois des crises de :", special: "q68_crises" },
@@ -3491,9 +3504,9 @@ var comportementsQuestions = [
   { num: 77, text: "Avez-vous de l'anxiété sociale ?", rangeLabels: ["0 · pas du tout", "5", "10 · vraiment beaucoup"], note: "L'anxiété sociale est une timidité extrême, gênante ou handicapante dans les situations sociales : peur d'être jugé(e), de se ridiculiser, d'être le centre d'attention." },
   { num: 78, text: "Êtes-vous plutôt désordonné(e) ?", rangeLabels: ["0 · très ordonné(e)", "5", "10 · très désordonné(e)"] },
   { num: 79, text: "Êtes-vous très attentif(ve) à votre hygiène ?", rangeLabels: ["0 · pas du tout", "5", "10 · très attentif(ve)"] },
-  { num: 80, text: "Êtes-vous souvent méfiant(e) vis-à-vis des autres ?", rangeLabels: ["0 · pas du tout", "5", "10 · vraiment beaucoup"] },
+  { num: 80, text: "Êtes-vous souvent méfiant(e) vis-à-vis des autres ?", rangeLabels: ["0 · pas du tout", "5", "10 · vraiment beaucoup"], pContexts: ["Si obsessionnel"] },
   { num: 81, text: "Avez-vous été diagnostiqué(e) autiste ou ayant des troubles du spectre autistique ?", noIntensity: true, pContexts: ["Expression émotionnelle", "Expression faciale / langage corporel"] },
-  { num: 82, text: "Avez-vous des troubles du stress post-traumatique ?", noIntensity: true, note: "Le trouble de stress post-traumatique (TSPT) est une réaction psychologique durable après un événement traumatisant. Symptômes : reviviscences (flashbacks, cauchemars), hypervigilance permanente, évitement de tout ce qui rappelle le traumatisme, réactions émotionnelles intenses ou engourdissement émotionnel, sentiment de danger constant, difficultés de concentration et de sommeil." },
+  { num: 82, text: "Avez-vous des troubles du stress post-traumatique ?", noIntensity: true, note: "Le trouble de stress post-traumatique (TSPT) est une réaction psychologique durable après un événement traumatisant. Symptômes : reviviscences (flashbacks, cauchemars), hypervigilance permanente, évitement de tout ce qui rappelle le traumatisme, réactions émotionnelles intenses ou engourdissement émotionnel, sentiment de danger constant, difficultés de concentration et de sommeil.", pContexts: ["Si obsessionnel"] },
   { num: 83, text: "Avez-vous été diagnostiqué(e) bipolaire ?", noIntensity: true },
   { num: 84, text: "Ressentez-vous des difficultés dans le domaine de la sexualité ?", rangeLabels: ["0 · pas du tout", "5", "10 · beaucoup"] },
   { num: 85, text: "Avez-vous d'autres problèmes de comportements ?", rangeLabels: ["0 · pas du tout", "5", "10 · beaucoup"] },
@@ -3521,7 +3534,7 @@ var emotionnelQuestions = [
   { num: 93, text: "Êtes-vous méfiant(e) vis-à-vis des autres ?", rangeLabels: ["0 · pas du tout", "5", "10 · vraiment beaucoup"] },
   { num: 94, text: "Avez-vous parfois ou avez-vous eu des attaques de panique ?", rangeLabels: ["0 · jamais", "5", "10 · très souvent"], note: "Une attaque de panique est une montée brutale et intense d'anxiété avec des symptômes physiques : palpitations, essoufflement, sueurs, vertiges, sensation de mort imminente ou de devenir fou(folle). Elle dure généralement quelques minutes à une demi-heure et peut survenir sans raison apparente." },
   { num: 95, text: "Êtes-vous souvent triste actuellement ?", rangeLabels: ["0 · pas du tout", "5", "10 · très souvent"], pContexts: ["Effet antidépresseur et énergisant recherché"] },
-  { num: 96, text: "Manquez-vous de joie et de plaisirs ?", rangeLabels: ["0 · pas du tout", "5", "10 · beaucoup"] },
+  { num: 96, text: "Manquez-vous de joie et de plaisirs ?", rangeLabels: ["0 · pas du tout", "5", "10 · beaucoup"], pContexts: ["Pour effet antidépresseur fort et énergisant"] },
   { num: 97, text: "Avez-vous peu ou trop d'empathie envers les autres ?", special: "q97_empathie" },
   { num: 98, text: "Avez-vous des sautes d'humeur ?", rangeLabels: ["0 · jamais", "5", "10 · très souvent"], note: "Les sautes d'humeur sont des changements rapides de l'état émotionnel, parfois sans vraie raison : passer de la joie à la tristesse, du calme à l'irritation, en peu de temps." },
   { num: 99, text: "Êtes-vous souvent impatient(e) ?", rangeLabels: ["0 · jamais", "5", "10 · très souvent"] },
@@ -3531,8 +3544,8 @@ var emotionnelQuestions = [
   { num: 103, text: "Avez-vous des pensées obsessionnelles ?", rangeLabels: ["0 · jamais", "5", "10 · très souvent"], note: "Les pensées obsessionnelles sont des pensées intrusives qui reviennent en boucle malgré soi, souvent autour d'un même sujet, et qui sont difficiles à chasser." },
   { num: 104, text: "Avez-vous des pensées négatives obsessionnelles ?", rangeLabels: ["0 · jamais", "5", "10 · en permanence"], note: "Ce sont des pensées négatives qui reviennent en permanence : se dire qu'on est nul(le), que tout va mal, anticiper le pire de façon systématique, ruminer des erreurs passées." },
   { num: 105, text: "Avez-vous souvent des souvenirs de traumatismes ? (images, sensations…)", rangeLabels: ["0 · jamais", "5", "10 · très souvent"] },
-  { num: 106, text: "Êtes-vous dépressif(ve) ou avez-vous été diagnostiqué(e) en dépression ?", special: "depression_detail", note: "La dépression se caractérise par une tristesse persistante, une perte d'intérêt et d'énergie durant plusieurs semaines, accompagnée parfois de troubles du sommeil, de l'appétit, de la concentration et d'idées sombres." },
-  { num: 107, text: "Êtes-vous actuellement ou avez-vous été diagnostiqué(e) en burn out ?", noIntensity: true, note: "Le burn out est un épuisement professionnel intense — physique, émotionnel et mental — lié à un stress chronique, souvent au travail. Il se traduit par un sentiment de vide, de perte de sens, d'incapacité à faire face." },
+  { num: 106, text: "Êtes-vous dépressif(ve) ou avez-vous été diagnostiqué(e) en dépression ?", special: "depression_detail", note: "La dépression se caractérise par une tristesse persistante, une perte d'intérêt et d'énergie durant plusieurs semaines, accompagnée parfois de troubles du sommeil, de l'appétit, de la concentration et d'idées sombres.", pContexts: ["Pour effet antidépresseur fort et énergisant"] },
+  { num: 107, text: "Êtes-vous actuellement ou avez-vous été diagnostiqué(e) en burn out ?", noIntensity: true, note: "Le burn out est un épuisement professionnel intense — physique, émotionnel et mental — lié à un stress chronique, souvent au travail. Il se traduit par un sentiment de vide, de perte de sens, d'incapacité à faire face.", pContexts: ["Pour effet antidépresseur fort et énergisant"] },
   { num: 108, text: "Pensez-vous qu'à certains moments vous n'êtes pas dans la réalité ?", rangeLabels: ["0 · jamais", "5", "10 · très souvent"] },
   { num: 109, text: "Avez-vous eu dans le passé des épisodes dissociatifs ?", noIntensity: true, note: "La dissociation est une perturbation de la conscience, de la mémoire, de l'identité ou des émotions. Elle peut se manifester par : sentiment de se voir de l'extérieur (dépersonnalisation), impression de vivre dans un rêve ou derrière une vitre (déréalisation), vide mental soudain, perte de mémoire d'événements récents, engourdissement émotionnel, sensation que certaines parties du corps sont étrangères ou disproportionnées, changements brusques d'humeur sans raison apparente, ou impression d'être 'ailleurs' pendant une conversation. Souvent liée à un stress intense ou à un traumatisme." },
   { num: 110, text: "Avez-vous parfois des hallucinations ?", rangeLabels: ["0 · jamais", "5", "10 · souvent"] },
@@ -3591,7 +3604,7 @@ var physiqueQuestions = [
   { num: 148, text: "Avez-vous des maux de tête récurrents ?", special: "double_cursor", label1: "Fréquence", label2: "Intensité", range1: ["0 · jamais", "5", "10 · constamment"], range2: ["0 · légères", "5", "10 · insupportables"] },
   { num: 149, text: "Avez-vous des maux de tête dus à des tensions musculaires ?", special: "double_cursor", label1: "Fréquence", label2: "Intensité", range1: ["0 · jamais", "5", "10 · constamment"], range2: ["0 · légères", "5", "10 · insupportables"] },
   { num: 150, text: "Avez-vous des migraines ?", special: "q150_migraines", note: "La migraine est un trouble neurologique caractérisé par des crises de maux de tête intenses, souvent d'un seul côté, pulsatiles, accompagnées de nausées, de vomissements et d'une hypersensibilité à la lumière et au bruit. Les crises durent de 4 à 72 heures et peuvent être très invalidantes." },
-  { num: 151, text: "Avez-vous des névralgies ?", special: "double_cursor", label1: "Fréquence", label2: "Intensité", range1: ["0 · jamais", "5", "10 · constamment"], range2: ["0 · légères", "5", "10 · insupportables"], note: "Une névralgie est une douleur intense ressentie le long d'un nerf, sans lésion de ce nerf — le nerf est intact mais « sonne l'alarme » de façon excessive." },
+  { num: 151, text: "Avez-vous des névralgies ?", special: "double_cursor", label1: "Fréquence", label2: "Intensité", range1: ["0 · jamais", "5", "10 · constamment"], range2: ["0 · légères", "5", "10 · insupportables"], note: "Une névralgie est une douleur intense ressentie le long d'un nerf, sans lésion de ce nerf — le nerf est intact mais « sonne l'alarme » de façon excessive.", pContexts: ["Chronique et hyperréactif"] },
   { num: 152, text: "Avez-vous des douleurs neuropathiques ?", special: "double_cursor", label1: "Fréquence", label2: "Intensité", range1: ["0 · jamais", "5", "10 · constamment"], range2: ["0 · très légères", "5", "10 · insupportables"], note: "Une neuropathie est une douleur due à une lésion réelle du nerf : brûlures, chocs électriques, engourdissements, hypersensibilité au toucher. Contrairement à la névralgie, le nerf est structurellement endommagé (chimiothérapie, diabète, compression…)." },
   { num: 153, text: "Avez-vous des névralgies du trijumeau ?", special: "double_cursor", label1: "Fréquence", label2: "Intensité", range1: ["0 · jamais", "5", "10 · constamment"], range2: ["0 · légères", "5", "10 · insupportables"] },
   { num: 154, text: "Avez-vous des névralgies d'Arnold ?", special: "double_cursor", label1: "Fréquence", label2: "Intensité", range1: ["0 · jamais", "5", "10 · constamment"], range2: ["0 · légères", "5", "10 · insupportables"] },
@@ -3601,8 +3614,8 @@ var physiqueQuestions = [
   { num: 158, text: "Êtes-vous diagnostiqué(e) fibromyalgique ?", noIntensity: true, note: "La fibromyalgie est une maladie chronique caractérisée par des douleurs diffuses dans tout le corps, une fatigue persistante et des troubles du sommeil." },
   { num: 159, text: "Avez-vous des douleurs d'estomac ?", special: "double_cursor", label1: "Fréquence", label2: "Intensité", range1: ["0 · jamais", "5", "10 · constamment"], range2: ["0 · légères", "5", "10 · insupportables"] },
   { num: 160, text: "Avez-vous des douleurs d'intestin ?", special: "double_cursor", label1: "Fréquence", label2: "Intensité", range1: ["0 · jamais", "5", "10 · constamment"], range2: ["0 · légères", "5", "10 · insupportables"] },
-  { num: 161, text: "Avez-vous des douleurs urinaires ?", special: "double_cursor", label1: "Fréquence", label2: "Intensité", range1: ["0 · jamais", "5", "10 · constamment"], range2: ["0 · légères", "5", "10 · insupportables"] },
-  { num: 162, text: "Tolérez-vous bien les douleurs ?", rangeLabels: ["0 · très bien", "5", "10 · très mal"] },
+  { num: 161, text: "Avez-vous des douleurs urinaires ?", special: "double_cursor", label1: "Fréquence", label2: "Intensité", range1: ["0 · jamais", "5", "10 · constamment"], range2: ["0 · légères", "5", "10 · insupportables"], pContexts: ["Cystite"] },
+  { num: 162, text: "Tolérez-vous bien les douleurs ?", rangeLabels: ["0 · très bien", "5", "10 · très mal"], pContexts: ["Faible"] },
   { num: 163, text: "Avez-vous des maladies en « ite » ?", rangeLabels: ["0 · pas du tout", "5", "10 · vraiment beaucoup"], note: "Les maladies en « ite » sont des maladies inflammatoires : cystite, arthrite, méningite, gastrite, bronchite, pancréatite…", commentPlaceholder: "Précisez lesquelles…" },
   { num: 164, text: "Avez-vous de l'épilepsie ?", special: "q164_epilepsie" },
   { num: 165, text: "Avez-vous une faiblesse immunitaire ?", rangeLabels: ["0 · très bonne immunité", "5", "10 · très mauvaise immunité"] },
