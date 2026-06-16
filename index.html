@@ -603,7 +603,7 @@
     color: white;
   }
 
-  .btn-primary:hover { background: #2e1f72; }
+  .btn-primary:hover, .btn-primary:active { background: #A0622A; }
 
   .btn-secondary {
     background: var(--bg);
@@ -611,7 +611,7 @@
     color: var(--text-muted);
   }
 
-  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-secondary:hover, .btn-secondary:active { border-color: var(--accent); color: var(--accent); }
 
   /* PRACTITIONER MODE INDICATOR */
   .practitioner-mode .question-card {
@@ -880,6 +880,8 @@
           placeholder="ex : 15/03/1985"
           inputmode="numeric"
           oninput="formatDDN(this); calcAgeSel();"
+          onchange="calcAgeSel();"
+          onblur="calcAgeSel();"
           style="font-size:15px;letter-spacing:0.05em">
       </div>
       <div class="info-field">
@@ -1153,7 +1155,7 @@
 
   <button onclick="envoyerQuestionnaire()"
     style="width:100%;margin-top:20px;padding:16px;background:var(--accent);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;letter-spacing:0.02em;transition:background 0.2s"
-    onmouseover="this.style.background='#2e1f72'" onmouseout="this.style.background='var(--accent)'">
+    onmouseover="this.style.background='#A0622A'" onmouseout="this.style.background='var(--accent)'">
     ✉ Envoyer le questionnaire
   </button>
 
@@ -3609,7 +3611,7 @@ var physiqueQuestions = [
   { num: 127, text: "Avez-vous de la constipation chronique ?", rangeLabels: ["0 · jamais", "5", "10 · très souvent"] },
   { num: 128, text: "Avez-vous des diarrhées ?", rangeLabels: ["0 · jamais", "5", "10 · très souvent"] },
   { num: 129, text: "Avez-vous des reflux, des brûlures d'estomac ?", rangeLabels: ["0 · jamais", "5", "10 · très souvent"] },
-  { num: 130, text: "Digérez-vous bien les aliments sucrés ?", rangeLabels: ["0 · très bien", "5", "10 · très mal"] },
+  { num: 130, text: "Avez-vous du mal à digérer les aliments sucrés ?", rangeLabels: ["0 · pas du tout", "5", "10 · vraiment beaucoup"] },
   { num: 131, text: "Avez-vous souvent des nausées ? Dans quelles circonstances ?", rangeLabels: ["0 · jamais", "5", "10 · très souvent"], commentPlaceholder: "Dans quelles circonstances ?" },
   { num: 132, text: "Avez-vous des vertiges et/ou des évanouissements ?", rangeLabels: ["0 · jamais", "5", "10 · très souvent"], note: "Les vertiges et évanouissements peuvent prendre différentes formes : sensation que la pièce tourne (vertige rotatoire), instabilité à la marche, sensation de flottement ou de tête vide, noir devant les yeux, perte de connaissance brève. Causes possibles : problème de l'oreille interne (labyrinthite, VPPB), tension artérielle basse (hypotension orthostatique), hypoglycémie, déshydratation, stress intense, hyperventilation, problème cardiaque, troubles neurologiques, médicaments, anémie, ou encore fatigue extrême." },
   { num: 133, text: "Votre peau est-elle souvent irritée ou réactive ?", rangeLabels: ["0 · pas du tout", "5", "10 · vraiment beaucoup"] },
@@ -3676,7 +3678,7 @@ var petiteEnfanceQuestions = [
   { num: 178, text: "Avez-vous souffert de convulsions ?", special: "q_quand_libre", commentPlaceholder: "Précisez si besoin…" },
   { num: 179, text: "Avez-vous subi des traumatismes précoces ?", special: "q181_trauma", commentPlaceholder: "Par exemple : abus, négligence, violence, séparation précoce..." },
   { num: 180, text: "Avez-vous été adopté(e) ?", special: "q182_adoption" },
-  { num: 181, text: "Avez-vous le sentiment d'avoir manqué de sécurité, d'amour ou d'encadrement dans votre toute petite enfance ?", rangeLabels: ["0 · pas du tout", "5", "10 · vraiment beaucoup"], note: "Il s'agit de ressentis liés à vos premières années de vie : sentiment d'avoir manqué de chaleur, de protection, de stabilité ou de présence bienveillante." },
+  { num: 181, text: "Avez-vous le sentiment d'avoir manqué de sécurité, d'amour ou d'encadrement dans votre toute petite enfance ?", rangeLabels: ["0 · pas manqué", "5", "10 · beaucoup manqué"], note: "Il s'agit de ressentis liés à vos premières années de vie : sentiment d'avoir manqué de chaleur, de protection, de stabilité ou de présence bienveillante." },
   { num: 182, text: "Autres problèmes de naissance ou d'enfance ?", special: "libre" },
 ];
 
@@ -3693,7 +3695,7 @@ buildPetiteEnfanceQuestions();
 
 // ===== EXPÉRIENCES TRAUMATIQUES (Q183-Q184) =====
 var traumaQuestions = [
-  { num: 183, text: "Avez-vous subi des traumatismes physiques ?", special: "q_trauma_list", placeholder: "ex : accident de voiture, chute, agression physique, opération…" },
+  { num: 183, text: "Avez-vous subi des traumatismes physiques ? (accident, chute, fracture, opération, agression, choc crânien, accouchement difficile…)", special: "q_trauma_list", placeholder: "Précisez si possible : date approximative, type de traumatisme, séquelles éventuelles…" },
   { num: 184, text: "Avez-vous subi des traumatismes émotionnels ?", special: "q_trauma_list", placeholder: "ex : séparation, deuil, abandon, violence, agression, harcèlement…" },
 ];
 
