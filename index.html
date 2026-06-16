@@ -871,8 +871,8 @@
         <input type="text" placeholder="Prénom" id="p_prenom">
       </div>
       <div class="info-field practitioner-only" style="grid-column:1/-1;background:var(--practitioner-light);border-radius:8px;padding:10px 12px;border-left:3px solid var(--practitioner)">
-        <label style="color:var(--practitioner);font-weight:600">Code / Identifiant <span style="font-weight:400;font-size:11px">(optionnel — remplace le nom dans le plan)</span></label>
-        <input type="text" placeholder="ex : initiales, numéro dossier…" id="p_code" style="margin-top:4px">
+        <label style="color:var(--practitioner);font-weight:600">Code / Identifiant <span style="font-weight:400;font-size:11px">(pré-rempli avec la date du jour — modifiable)</span></label>
+        <input type="text" id="p_code" style="margin-top:4px">
       </div>
       <div class="info-field">
         <label>Date de naissance</label>
@@ -1129,10 +1129,24 @@
   </div>
 
   <div class="patient-info-card" style="margin-top:16px">
+    <div class="card-header">Informations sur le traitement de vos données</div>
+    <div style="padding:16px 20px;font-size:12px;line-height:1.7;color:var(--text-muted)">
+      <p style="margin:0 0 8px 0">Dans le cadre de ce questionnaire, <strong>Synaxone</strong> collecte des informations sur votre santé (sommeil, cognition, comportement, émotions, douleurs, antécédents) afin de personnaliser votre protocole d'entraînement en neurofeedback ILF et de suivre votre évolution.</p>
+      <p style="margin:0 0 8px 0"><strong>Responsable du traitement :</strong> Synaxone — <a href="mailto:synaxone.nfb@gmail.com" style="color:var(--accent)">synaxone.nfb@gmail.com</a></p>
+      <p style="margin:0 0 8px 0"><strong>Base légale :</strong> consentement explicite (article 9.2.a du RGPD) — vous pouvez le retirer à tout moment.</p>
+      <p style="margin:0 0 8px 0"><strong>Destinataires :</strong> votre praticien uniquement. Aucune transmission à des tiers, aucun usage commercial.</p>
+      <p style="margin:0 0 8px 0"><strong>Hébergement :</strong> espace Google sécurisé et privé, accessible uniquement par votre praticien.</p>
+      <p style="margin:0 0 8px 0"><strong>Durée de conservation :</strong> 3 ans à compter de votre dernière séance.</p>
+      <p style="margin:0 0 8px 0"><strong>Vos droits :</strong> accès, rectification, effacement, limitation et opposition — à exercer par email à <a href="mailto:synaxone.nfb@gmail.com" style="color:var(--accent)">synaxone.nfb@gmail.com</a>. Vous pouvez également introduire une réclamation auprès de la CNIL (<a href="https://www.cnil.fr" target="_blank" style="color:var(--accent)">cnil.fr</a>).</p>
+      <p style="margin:0" id="mention_mineur" style="display:none"><strong>Patient mineur :</strong> le consentement doit être donné par le représentant légal.</p>
+    </div>
+  </div>
+
+  <div class="patient-info-card" style="margin-top:16px">
     <div style="padding:16px 20px;display:flex;gap:10px;align-items:flex-start">
       <input type="checkbox" id="consent_rgpd" style="margin-top:3px;width:18px;height:18px;flex-shrink:0;cursor:pointer">
       <label for="consent_rgpd" style="font-size:12.5px;line-height:1.6;cursor:pointer">
-        J'accepte explicitement que mes coordonnées et mes données de santé soient collectées et traitées dans le cadre de ce questionnaire. Conformément au RGPD, je dispose d'un droit d'accès et de suppression de mes données en écrivant à : synaxone.nfb@gmail.com.
+        J'ai pris connaissance des informations ci-dessus et je consens au traitement de mes données de santé dans le cadre de ce suivi en neurofeedback.
       </label>
     </div>
   </div>
@@ -1455,6 +1469,18 @@ function buildSommeilQuestions() {
 }
 
 buildSommeilQuestions();
+
+// Pré-remplissage du code patient avec la date du jour au format JJMMAA
+(function() {
+  var codeEl = document.getElementById('p_code');
+  if (codeEl && !codeEl.value) {
+    var now = new Date();
+    var jj = String(now.getDate()).padStart(2,'0');
+    var mm = String(now.getMonth()+1).padStart(2,'0');
+    var aa = String(now.getFullYear()).slice(-2);
+    codeEl.value = jj + mm + aa;
+  }
+})();
 
 // ===== INTENSITY =====
 var freqLabels = ['jamais','très rare','rare','occasionnel','parfois','régulièrement','fréquent','très fréquent','presque toujours','quasi-systématique','toujours'];
@@ -4157,13 +4183,10 @@ function envoyerQuestionnaire() {
     if (qt && lbl) msg += qt.textContent + ' [praticien] : ' + lbl + '\n';
   });
 
-  // Generate reload link for praticien
-  var collected = collectAllAnswers();
-  var reloadData = btoa(unescape(encodeURIComponent(collected.patient)));
-  var reloadLink = 'https://synaxone.github.io/Neurofeedback-ilf/?reload=' + reloadData;
-  msg += '\n\n── LIEN PRATICIEN ──\n';
-  msg += 'Pour recharger ce questionnaire en mode praticien :\n';
-  msg += reloadLink + '\n';
+  // Note RGPD : un "lien praticien" encodant l'intégralité des réponses en base64
+  // dans l'URL était généré ici mais n'était lu nulle part au chargement de la page
+  // (code mort) — retiré, car ce n'était qu'une exposition inutile de données de
+  // santé (le base64 n'est pas un chiffrement) dans un email.
 
   // Envoi direct à votre Apps Script : traitement immédiat, aucun service tiers.
   // Mode 'no-cors' : compatible Safari/iPhone, on n'attend pas de réponse lisible
