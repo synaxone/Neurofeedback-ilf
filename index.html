@@ -1670,6 +1670,7 @@ function goToSection(n) {
 }
 
 function nextSection() {
+  sauvegarderBrouillon();
   // Section 10 = envoi page (index 10), section 11 = merci page (index 11)
   if (currentSection === 10 && !_envoiValide) {
     alert('Veuillez envoyer le questionnaire avant de continuer.');
@@ -1679,6 +1680,7 @@ function nextSection() {
 }
 
 function prevSection() {
+  sauvegarderBrouillon();
   if (currentSection > 0) goToSection(currentSection - 1);
 }
 
@@ -4203,13 +4205,13 @@ function envoyerQuestionnaire() {
 
   fetch(GOOGLE_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: formData })
     .then(function() {
+      effacerBrouillon();
       hiddenSections.forEach(function(s) { s.style.display = 'none'; });
       restoreSubDivs(hiddenSubs);
       showConfirmation();
     })
     .catch(function(err) {
       console.log('Erreur envoi Apps Script :', err);
-      // Solution de secours : ouvre le client mail avec les données pré-remplies
       var subject = encodeURIComponent('Questionnaire Neurofeedback - ' + nom.trim());
       var body = encodeURIComponent(msg);
       window.location.href = 'mailto:' + email + '?subject=' + subject + '&body=' + body;
@@ -4265,6 +4267,7 @@ function restoreSubDivs(hidden) {
 }
 
 function imprimerQuestionnaire() {
+  sauvegarderBrouillon(); // protection si le navigateur mobile vide la page
   var sections = document.querySelectorAll('.section');
   var hiddenSecs = [];
   sections.forEach(function(s) {
@@ -4537,7 +4540,102 @@ function buildPrintHtml(vierge) {
 
 
 
-// ── PASSWORD PROTECTION ──
+// ── SAUVEGARDE AUTOMATIQUE (localStorage) ──
+var SAVE_KEY = 'synaxone_nfb_draft';
+
+function sauvegarderBrouillon() {
+  try {
+    var data = {};
+    // Champs texte/select
+    ['p_nom','p_prenom','p_ddn','p_age','p_email','p_tel','p_ville','p_main','p_raison',
+     'p_code','p_enceinte','p_situation','p_enfants','p_profession','p_travail',
+     'p_pere','p_mere','p_fratrie','p_enfants_rel','p_loisirs','p_evenements'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) data[id] = el.value;
+    });
+    // Sliders
+    document.querySelectorAll('input[type=range]').forEach(function(el) {
+      if (el.id) data[el.id] = el.value;
+    });
+    // Checkboxes
+    document.querySelectorAll('input[type=checkbox]').forEach(function(el) {
+      if (el.id) data[el.id] = el.checked;
+    });
+    // Textareas
+    document.querySelectorAll('textarea').forEach(function(el) {
+      if (el.id) data[el.id] = el.value;
+    });
+    // Radio buttons
+    document.querySelectorAll('input[type=radio]:checked').forEach(function(el) {
+      if (el.name) data['radio_' + el.name] = el.value;
+    });
+    data['_section'] = currentSection;
+    data['_ts'] = new Date().toISOString();
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  } catch(e) {}
+}
+
+function restaurerBrouillon(data) {
+  try {
+    ['p_nom','p_prenom','p_ddn','p_age','p_email','p_tel','p_ville','p_main','p_raison',
+     'p_code','p_enceinte','p_situation','p_enfants','p_profession','p_travail',
+     'p_pere','p_mere','p_fratrie','p_enfants_rel','p_loisirs','p_evenements'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el && data[id] !== undefined) el.value = data[id];
+    });
+    document.querySelectorAll('input[type=range]').forEach(function(el) {
+      if (el.id && data[el.id] !== undefined) {
+        el.value = data[el.id];
+        el.dispatchEvent(new Event('input'));
+      }
+    });
+    document.querySelectorAll('input[type=checkbox]').forEach(function(el) {
+      if (el.id && data[el.id] !== undefined) {
+        el.checked = data[el.id];
+        el.dispatchEvent(new Event('change'));
+      }
+    });
+    document.querySelectorAll('textarea').forEach(function(el) {
+      if (el.id && data[el.id] !== undefined) el.value = data[el.id];
+    });
+    Object.keys(data).forEach(function(k) {
+      if (k.indexOf('radio_') === 0) {
+        var name = k.replace('radio_', '');
+        var radio = document.querySelector('input[type=radio][name="' + name + '"][value="' + data[k] + '"]');
+        if (radio) { radio.checked = true; radio.dispatchEvent(new Event('change')); }
+      }
+    });
+    if (data['_section'] !== undefined) goToSection(data['_section']);
+  } catch(e) {}
+}
+
+function effacerBrouillon() {
+  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+}
+
+// Sauvegarde toutes les 30 secondes
+setInterval(sauvegarderBrouillon, 30000);
+
+// Vérification au chargement
+window.addEventListener('load', function() {
+  try {
+    var saved = localStorage.getItem(SAVE_KEY);
+    if (!saved) return;
+    var data = JSON.parse(saved);
+    if (!data._ts) return;
+    var ts = new Date(data._ts);
+    var age = (new Date() - ts) / 1000 / 60; // minutes
+    if (age > 60 * 24 * 7) { effacerBrouillon(); return; } // ignore si > 7 jours
+    var mins = Math.round(age);
+    var label = mins < 2 ? "il y a quelques instants" : "il y a " + mins + " min";
+    if (confirm("💾 Un questionnaire en cours a été sauvegardé (" + label + ").\n\nVoulez-vous le restaurer ?")) {
+      restaurerBrouillon(data);
+    } else {
+      effacerBrouillon();
+    }
+  } catch(e) {}
+});
+
 var CORRECT_PASSWORD = 'NFBILF7';
 
 function checkPassword() {
