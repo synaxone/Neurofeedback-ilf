@@ -4281,17 +4281,29 @@ function showConfirmation() {
 
 function showAllSubDivs() {
   var hidden = [];
-  // Show hidden sub-divs (inline style) — sauf adddtl_ dont la checkbox n'est pas cochée
+  // 1. Show hidden sub-divs (inline style display:none) — sauf adddtl_ non cochés
   document.querySelectorAll('.question-card [style*="display:none"], .question-card [style*="display: none"]').forEach(function(el) {
-    // Pour les divs adddtl_, vérifier que la checkbox correspondante est cochée
     if (el.id && el.id.indexOf('adddtl_') === 0) {
-      var parts = el.id.split('_'); // adddtl_69_0 → ['adddtl', '69', '0']
+      var parts = el.id.split('_');
       var idx = parts[parts.length - 1];
       var chk = document.getElementById('chkadd_' + idx);
-      if (!chk || !chk.checked) return; // ne pas afficher si non cochée
+      if (!chk || !chk.checked) return;
     }
     hidden.push({el: el, style: el.style.display, type: 'inline'});
     el.style.display = 'block';
+  });
+  // 2. Show slider_* avec attribut hidden — seulement si leur checkbox est cochée
+  document.querySelectorAll('.question-card div[id^="slider_"][hidden]').forEach(function(el) {
+    var sliderIdParts = el.id.replace('slider_', '').split('_');
+    var qid = sliderIdParts[0];
+    var idx = sliderIdParts[1];
+    // Chercher la checkbox correspondante
+    var chk = document.getElementById('chk_' + qid + '_' + idx)
+           || document.getElementById('chk20_' + qid + '_' + idx)
+           || document.getElementById('chk20_' + qid + '_autre');
+    if (!chk || !chk.checked) return;
+    hidden.push({el: el, style: 'hidden', type: 'hidden'});
+    el.removeAttribute('hidden');
   });
   // Show practitioner-only divs (CSS class)
   document.querySelectorAll('.practitioner-only').forEach(function(el) {
@@ -4305,6 +4317,8 @@ function restoreSubDivs(hidden) {
   hidden.forEach(function(item) {
     if (item.type === 'class') {
       item.el.style.removeProperty('display');
+    } else if (item.type === 'hidden') {
+      item.el.setAttribute('hidden', '');
     } else {
       item.el.style.display = item.style;
     }
