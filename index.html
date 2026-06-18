@@ -4612,26 +4612,26 @@ function sauvegarderBrouillon() {
       var el = document.getElementById(id);
       if (el) data[id] = el.value;
     });
-    // Sliders avec id direct
+    // Sliders avec id direct (seulement si > 0)
     document.querySelectorAll('input[type=range]').forEach(function(el) {
-      if (el.id) data[el.id] = el.value;
+      if (el.id && parseInt(el.value) > 0) data[el.id] = el.value;
     });
-    // Sliders sans id (domaines_cursor, Q97, Q113) : clé basée sur le div conteneur
+    // Sliders sans id (domaines_cursor, Q97, Q113) : clé basée sur le div conteneur (seulement si > 0)
     document.querySelectorAll('div[id^="slider_"], div[id^="slider97_"], div[id^="slider113_"]').forEach(function(div) {
       var range = div.querySelector('input[type=range]');
-      if (range && !range.id) data['__slider__' + div.id] = range.value;
+      if (range && !range.id && parseInt(range.value) > 0) data['__slider__' + div.id] = range.value;
     });
     // Inputs text/number avec id (addqty_, adddep_, yn_, etc.)
     document.querySelectorAll('input[type=text][id], input[type=number][id]').forEach(function(el) {
       if (el.value && el.id !== 'praticien_email' && el.id.indexOf('p_') !== 0) data[el.id] = el.value;
     });
-    // Checkboxes
+    // Checkboxes (seulement si cochées)
     document.querySelectorAll('input[type=checkbox]').forEach(function(el) {
-      if (el.id) data[el.id] = el.checked;
+      if (el.id && el.checked) data[el.id] = true;
     });
-    // Textareas
+    // Textareas (seulement si non vides)
     document.querySelectorAll('textarea').forEach(function(el) {
-      if (el.id) data[el.id] = el.value;
+      if (el.id && el.value) data[el.id] = el.value;
     });
     // Radio buttons
     document.querySelectorAll('input[type=radio]:checked').forEach(function(el) {
@@ -4659,9 +4659,10 @@ function restaurerBrouillon(data) {
       }
     });
     // 2. Checkboxes en premier — rend visibles les sliders domaines_cursor
+    // Seules les checkboxes cochées sont dans data (true), les autres sont ignorées
     document.querySelectorAll('input[type=checkbox]').forEach(function(el) {
-      if (el.id && data[el.id] !== undefined) {
-        el.checked = data[el.id];
+      if (el.id && data[el.id] === true) {
+        el.checked = true;
         el.dispatchEvent(new Event('change'));
       }
     });
