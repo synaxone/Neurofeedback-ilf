@@ -4633,6 +4633,10 @@ function sauvegarderBrouillon() {
     document.querySelectorAll('textarea').forEach(function(el) {
       if (el.id && el.value) data[el.id] = el.value;
     });
+    // Inputs hidden avec id (yn_, etc.)
+    document.querySelectorAll('input[type=hidden][id]').forEach(function(el) {
+      if (el.id && el.value) data[el.id] = el.value;
+    });
     // Radio buttons
     document.querySelectorAll('input[type=radio]:checked').forEach(function(el) {
       if (el.name) data['radio_' + el.name] = el.value;
@@ -4686,6 +4690,18 @@ function restaurerBrouillon(data) {
     // Textareas
     document.querySelectorAll('textarea').forEach(function(el) {
       if (el.id && data[el.id] !== undefined) el.value = data[el.id];
+    });
+    // Yesno (yn_) — simuler le clic sur le bon bouton
+    document.querySelectorAll('input[type=hidden][id^=yn_]').forEach(function(el) {
+      if (el.id && data[el.id]) {
+        var val = data[el.id];
+        var card = el.closest('.question-card');
+        if (card) {
+          var btn = card.querySelector('.yesno-btn[onclick*=\'"' + val + '"\']')
+                 || card.querySelector('.yesno-btn[onclick*="' + val + '"]');
+          if (btn) btn.click();
+        }
+      }
     });
     // Radios
     Object.keys(data).forEach(function(k) {
