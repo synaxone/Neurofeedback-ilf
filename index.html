@@ -4562,9 +4562,14 @@ function sauvegarderBrouillon() {
       var el = document.getElementById(id);
       if (el) data[id] = el.value;
     });
-    // Sliders
+    // Sliders avec id direct
     document.querySelectorAll('input[type=range]').forEach(function(el) {
       if (el.id) data[el.id] = el.value;
+    });
+    // Sliders sans id (domaines_cursor) : clé basée sur le div conteneur
+    document.querySelectorAll('div[id^="slider_"]').forEach(function(div) {
+      var range = div.querySelector('input[type=range]');
+      if (range && !range.id) data['__slider__' + div.id] = range.value;
     });
     // Checkboxes
     document.querySelectorAll('input[type=checkbox]').forEach(function(el) {
@@ -4592,21 +4597,36 @@ function restaurerBrouillon(data) {
       var el = document.getElementById(id);
       if (el && data[id] !== undefined) el.value = data[id];
     });
+    // 1. Sliders avec id direct
     document.querySelectorAll('input[type=range]').forEach(function(el) {
       if (el.id && data[el.id] !== undefined) {
         el.value = data[el.id];
         el.dispatchEvent(new Event('input'));
       }
     });
+    // 2. Checkboxes en premier — rend visibles les sliders domaines_cursor
     document.querySelectorAll('input[type=checkbox]').forEach(function(el) {
       if (el.id && data[el.id] !== undefined) {
         el.checked = data[el.id];
         el.dispatchEvent(new Event('change'));
       }
     });
+    // 3. Sliders sans id (domaines_cursor) — après les checkboxes
+    document.querySelectorAll('div[id^="slider_"]').forEach(function(div) {
+      var key = '__slider__' + div.id;
+      if (data[key] !== undefined) {
+        var range = div.querySelector('input[type=range]');
+        if (range) {
+          range.value = data[key];
+          range.dispatchEvent(new Event('input'));
+        }
+      }
+    });
+    // Textareas
     document.querySelectorAll('textarea').forEach(function(el) {
       if (el.id && data[el.id] !== undefined) el.value = data[el.id];
     });
+    // Radios
     Object.keys(data).forEach(function(k) {
       if (k.indexOf('radio_') === 0) {
         var name = k.replace('radio_', '');
