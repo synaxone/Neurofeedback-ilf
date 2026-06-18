@@ -4133,6 +4133,14 @@ function envoyerQuestionnaire() {
       if (v < 1) return;
       var rg = inp.closest('.response-group');
       var rlbl = rg ? (rg.querySelector('label') ? rg.querySelector('label').textContent.replace(/\(0–10\)/,'').trim() : '') : '';
+      // Pour domaines_attention/cursor : le label du contexte est dans le div#slider_* précédent
+      if (!rlbl) {
+        var sliderDiv = inp.closest('div[id^="slider_"]');
+        if (sliderDiv && sliderDiv.previousElementSibling) {
+          var contextLabel = sliderDiv.previousElementSibling.querySelector('span');
+          if (contextLabel) rlbl = contextLabel.textContent.trim();
+        }
+      }
       cardLines.push(qid + ' — ' + (ql ? ql.textContent.substring(0,60) : '') + (rlbl ? ' [' + rlbl + ']' : '') + ' : ' + v + '/10');
     });
 
