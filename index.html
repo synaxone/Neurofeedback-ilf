@@ -4275,8 +4275,15 @@ function showConfirmation() {
 
 function showAllSubDivs() {
   var hidden = [];
-  // Show hidden sub-divs (inline style)
+  // Show hidden sub-divs (inline style) — sauf adddtl_ dont la checkbox n'est pas cochée
   document.querySelectorAll('.question-card [style*="display:none"], .question-card [style*="display: none"]').forEach(function(el) {
+    // Pour les divs adddtl_, vérifier que la checkbox correspondante est cochée
+    if (el.id && el.id.indexOf('adddtl_') === 0) {
+      var parts = el.id.split('_'); // adddtl_69_0 → ['adddtl', '69', '0']
+      var idx = parts[parts.length - 1];
+      var chk = document.getElementById('chkadd_' + idx);
+      if (!chk || !chk.checked) return; // ne pas afficher si non cochée
+    }
     hidden.push({el: el, style: el.style.display, type: 'inline'});
     el.style.display = 'block';
   });
