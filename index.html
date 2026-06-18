@@ -2171,7 +2171,7 @@ function buildQuestionCard(q) {
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
               <input class=\"field-input\" type=\"text\" placeholder=\"Depuis quand (si possible) ?\" style=\"background:white\" id=\"dep8_${id}_${i}\">
-              <textarea class=\"field-input\" placeholder=\"Commentaires…\" rows=\"1\" style=\"background:white\" oninput=\"this.style.height='auto';this.style.height=this.scrollHeight+'px'\"></textarea>
+              <textarea class=\"field-input\" placeholder=\"Commentaires…\" rows=\"1\" style=\"background:white\" id=\"com8_${id}_${i}\" oninput=\"this.style.height='auto';this.style.height=this.scrollHeight+'px'\"></textarea>
             </div>
           </div>
         </div>`).join('')}
@@ -4293,14 +4293,14 @@ function showAllSubDivs() {
     el.style.display = 'block';
   });
   // 2. Show slider_* avec attribut hidden — seulement si leur checkbox est cochée
-  document.querySelectorAll('.question-card div[id^="slider_"][hidden]').forEach(function(el) {
-    var sliderIdParts = el.id.replace('slider_', '').split('_');
+  document.querySelectorAll('.question-card div[id^="slider_"][hidden], .question-card div[id^="slider113_"][hidden]').forEach(function(el) {
+    var sliderIdParts = el.id.replace('slider113_','').replace('slider_', '').split('_');
     var qid = sliderIdParts[0];
     var idx = sliderIdParts[1];
-    // Chercher la checkbox correspondante
     var chk = document.getElementById('chk_' + qid + '_' + idx)
            || document.getElementById('chk20_' + qid + '_' + idx)
-           || document.getElementById('chk20_' + qid + '_autre');
+           || document.getElementById('chk20_' + qid + '_autre')
+           || document.getElementById('chk113_' + idx);
     if (!chk || !chk.checked) return;
     hidden.push({el: el, style: 'hidden', type: 'hidden'});
     el.removeAttribute('hidden');
@@ -4616,8 +4616,8 @@ function sauvegarderBrouillon() {
     document.querySelectorAll('input[type=range]').forEach(function(el) {
       if (el.id) data[el.id] = el.value;
     });
-    // Sliders sans id (domaines_cursor) : clé basée sur le div conteneur
-    document.querySelectorAll('div[id^="slider_"]').forEach(function(div) {
+    // Sliders sans id (domaines_cursor, Q97, Q113) : clé basée sur le div conteneur
+    document.querySelectorAll('div[id^="slider_"], div[id^="slider97_"], div[id^="slider113_"]').forEach(function(div) {
       var range = div.querySelector('input[type=range]');
       if (range && !range.id) data['__slider__' + div.id] = range.value;
     });
@@ -4665,8 +4665,8 @@ function restaurerBrouillon(data) {
         el.dispatchEvent(new Event('change'));
       }
     });
-    // 3. Sliders sans id (domaines_cursor) — après les checkboxes
-    document.querySelectorAll('div[id^="slider_"]').forEach(function(div) {
+    // 3. Sliders sans id (domaines_cursor, Q97, Q113) — après les checkboxes
+    document.querySelectorAll('div[id^="slider_"], div[id^="slider97_"], div[id^="slider113_"]').forEach(function(div) {
       var key = '__slider__' + div.id;
       if (data[key] !== undefined) {
         var range = div.querySelector('input[type=range]');
