@@ -4594,6 +4594,10 @@ function sauvegarderBrouillon() {
       var range = div.querySelector('input[type=range]');
       if (range && !range.id) data['__slider__' + div.id] = range.value;
     });
+    // Inputs text/number avec id (addqty_, adddep_, yn_, etc.)
+    document.querySelectorAll('input[type=text][id], input[type=number][id]').forEach(function(el) {
+      if (el.value && el.id !== 'praticien_email' && el.id.indexOf('p_') !== 0) data[el.id] = el.value;
+    });
     // Checkboxes
     document.querySelectorAll('input[type=checkbox]').forEach(function(el) {
       if (el.id) data[el.id] = el.checked;
@@ -4643,6 +4647,12 @@ function restaurerBrouillon(data) {
           range.value = data[key];
           range.dispatchEvent(new Event('input'));
         }
+      }
+    });
+    // 4. Inputs text/number avec id (addqty_, adddep_, etc.) — après les checkboxes qui affichent les divs
+    document.querySelectorAll('input[type=text][id], input[type=number][id]').forEach(function(el) {
+      if (el.id !== 'praticien_email' && el.id.indexOf('p_') !== 0 && data[el.id] !== undefined) {
+        el.value = data[el.id];
       }
     });
     // Textareas
