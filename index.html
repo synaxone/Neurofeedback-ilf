@@ -4141,6 +4141,12 @@ function envoyerQuestionnaire() {
           var contextLabel = sliderDiv.previousElementSibling.querySelector('span');
           if (contextLabel) rlbl = contextLabel.textContent.trim();
         }
+        // Pour slider_*_autre : enrichir avec le texte libre de autre_text_
+        if (sliderDiv && sliderDiv.id && sliderDiv.id.indexOf('_autre') !== -1) {
+          var qidNum = sliderDiv.id.replace('slider_','').replace('_autre','');
+          var autreText = document.getElementById('autre_text_' + qidNum);
+          if (autreText && autreText.value) rlbl = 'Autre — ' + autreText.value;
+        }
       }
       cardLines.push(qid + ' — ' + (ql ? ql.textContent.substring(0,60) : '') + (rlbl ? ' [' + rlbl + ']' : '') + ' : ' + v + '/10');
     });
