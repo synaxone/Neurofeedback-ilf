@@ -4133,6 +4133,7 @@ function envoyerQuestionnaire() {
       if (v < 1) return;
       var rg = inp.closest('.response-group');
       var rlbl = rg ? (rg.querySelector('label') ? rg.querySelector('label').textContent.replace(/\(0–10\)/,'').trim() : '') : '';
+      if (/^0\s*.{1,3}\s*10$/.test(rlbl)) rlbl = ''; // filtrer "0 → 10", "0 - 10", etc.
       // Pour domaines_attention/cursor : le label du contexte est dans le div#slider_* précédent
       if (!rlbl) {
         var sliderDiv = inp.closest('div[id^="slider_"]');
