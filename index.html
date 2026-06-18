@@ -4159,8 +4159,8 @@ function envoyerQuestionnaire() {
       var idx = cb.id.replace('chkadd_', '');
       var lblSpan = cb.closest('label') ? cb.closest('label').querySelector('span') : null;
       var addLabel = lblSpan ? lblSpan.textContent.trim() : '';
-      var qty = document.getElementById('addqty_' + qid + '_' + idx);
-      var dep = document.getElementById('adddep_' + qid + '_' + idx);
+      var qty = document.getElementById('addqty_' + qid.replace('Q','') + '_' + idx);
+      var dep = document.getElementById('adddep_' + qid.replace('Q','') + '_' + idx);
       var parts = [addLabel];
       if (qty && qty.value) parts.push(qty.value);
       if (dep && dep.value) parts.push('depuis ' + dep.value);
@@ -4172,8 +4172,8 @@ function envoyerQuestionnaire() {
       if (inp.value) cardLines.push(qid + ' — ' + (ql ? ql.textContent.substring(0,60) : '') + ' : ' + inp.value);
     });
 
-    // Checkboxes
-    card.querySelectorAll('input[type=checkbox]:not([id^=pctx_])').forEach(function(cb) {
+    // Checkboxes (exclure pctx_ et chkadd_ déjà traités séparément)
+    card.querySelectorAll('input[type=checkbox]:not([id^=pctx_]):not([id^=chkadd_])').forEach(function(cb) {
       if (cb.checked) {
         var lbl = cb.closest('label');
         var lblText = lbl ? lbl.textContent.trim() : '';
